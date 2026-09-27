@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>音素材カタログ</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#10151c;--panel:#19222e;--panel2:#1f2a38;--line:#2e3b4b;--line2:#435166;
+  --text:#e8edf4;--muted:#a9b8c9;--accent:#70e0be;--link:#91c8ff;--star:#ffe494;--warn:#ffb86b;--bad:#ff8a8a;
+  font-family:system-ui,"Yu Gothic UI","Yu Gothic","Hiragino Sans",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);padding-bottom:88px}
+a{color:var(--link)}
+button,select,input{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line2);border-radius:7px;padding:8px 11px}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:#1d5a4b;border-color:var(--accent);font-weight:600}
+button.small{font-size:12px;padding:4px 9px}
+input[type=search]{min-width:220px}
+label.check{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:28px}
+header{padding-block:36px 20px}
+.tag{color:var(--accent);font-size:12px;letter-spacing:.16em}
+h1{font-size:28px;margin:6px 0 4px;letter-spacing:.03em}
+.lead{color:var(--muted);margin:0;font-size:14px}
+.tabs{position:sticky;top:0;z-index:5;background:#10151cf5;border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+.tabrow{display:flex;gap:12px;align-items:stretch}
+.batchtabs{display:flex;gap:6px;overflow-x:auto;flex:1;padding:10px 0;scrollbar-width:thin}
+.fixedtabs{display:flex;gap:6px;padding:10px 0;border-left:1px solid var(--line);padding-left:12px}
+.tab{display:flex;flex-direction:column;align-items:flex-start;gap:2px;white-space:nowrap;background:transparent;border:1px solid transparent;padding:7px 12px;border-radius:8px;color:var(--muted);max-width:280px}
+.tab b{color:var(--text);font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;max-width:250px}
+.tab small{font-size:11px}
+.tab[aria-selected=true]{background:var(--panel);border-color:var(--accent)}
+.tab[aria-selected=true] b{color:var(--accent)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.toolbar .count{color:var(--accent);font-size:13px;margin-left:auto}
+main{padding-block:28px 40px}
+.intro{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:28px}
+.intro h2{margin:0 0 6px;font-size:20px}
+.intro p{color:var(--muted);margin:6px 0;line-height:1.7;font-size:14px}
+details{margin-top:8px;font-size:13px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--text)}
+details pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font:12px/1.6 ui-monospace,Consolas,monospace;color:var(--text)}
+section.cat{margin-bottom:34px}
+section.cat>h2{font-size:21px;margin:0 0 2px}
+.catnote{color:var(--muted);font-size:12px;margin:0 0 8px;font-family:ui-monospace,Consolas,monospace}
+h3{color:var(--accent);font-size:15px;margin:16px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.card{min-width:0}
+.card .meta{overflow-wrap:anywhere}
+.card .id{font:11px ui-monospace,Consolas,monospace;color:var(--muted);overflow-wrap:anywhere}
+.card .player{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:4px}
+.card.playing{border-color:var(--accent)}
+.card .top{display:flex;gap:10px;align-items:baseline}
+.num{font-family:ui-monospace,Consolas,monospace;color:var(--accent);font-size:13px}
+.card h4{margin:0;font-size:15px;line-height:1.45}
+.meta{font-size:12px;color:var(--muted);line-height:1.7}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:11px;border:1px solid var(--line2);border-radius:99px;padding:1px 8px;color:var(--muted)}
+audio{width:100%;height:34px}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.links{display:flex;gap:10px;font-size:12px;flex-wrap:wrap;align-items:center}
+.fav{font-size:13px;padding:4px 9px}
+.fav.on{color:var(--star);border-color:#8a7a3c}
+.empty{color:var(--muted);text-align:center;padding:60px 20px;line-height:1.9}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#141c26f7;border-top:1px solid var(--line2);backdrop-filter:blur(6px)}
+.bar .wrap{display:flex;gap:10px;align-items:center;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.bar .label{font-size:14px}
+.bar .label b{color:var(--star);font-size:18px}
+.bar .spacer{flex:1}
+.bar .hint{font-size:12px;color:var(--muted)}
+.linkbtn{background:none;border:none;color:var(--link);padding:0;font-size:12px;text-decoration:underline}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#243447;border:1px solid var(--accent);border-radius:9px;padding:10px 16px;font-size:13px;max-width:min(680px,92vw);z-index:9;opacity:0;pointer-events:none;transition:opacity .2s;line-height:1.6}
+.toast.show{opacity:1}
+.toast.err{border-color:var(--bad)}
+.job{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:22px}
+.job h2{margin:0;font-size:19px}
+.job .sub{color:var(--muted);font-size:13px;margin:4px 0 12px}
+.pathrow{display:flex;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin:8px 0}
+.pathrow .what{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pathrow .what b{font-size:13px}
+.pathrow code{font:11.5px ui-monospace,Consolas,monospace;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
+.pathrow button{flex:none}
+.cuebox{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.cuebox h3{margin:0 0 2px;color:var(--text);font-size:16px}
+.versions{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:10px}
+.version{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.version .pathrow{margin:0}
+.version h4{margin:0;color:var(--accent);font-size:14px}
+.job .sub{margin-bottom:14px}
+.fav:disabled{opacity:.55;cursor:not-allowed;border-color:var(--line2)}
+.badge{font-size:11px;border:1px solid var(--warn);color:var(--warn);border-radius:99px;padding:1px 8px;margin-left:6px}
+.ok{color:var(--accent)} .ng{color:var(--bad)} .warn{color:var(--warn)}
+@media(max-width:700px){.wrap{padding:0 14px}.tabrow{flex-direction:column;gap:0}.fixedtabs{border-left:none;padding-left:0;padding-top:0}input[type=search]{min-width:0;flex:1}}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="tag">MUSIC CATALOG</div>
+  <h1>音素材カタログ</h1>
+  <p class="lead" id="stats"></p>
+</header>
+<nav class="tabs" aria-label="表示の切り替え">
+  <div class="wrap">
+    <div class="tabrow">
+      <div class="batchtabs" id="batchTabs" role="tablist"></div>
+      <div class="fixedtabs" role="tablist">
+        <button class="tab" id="tabList" role="tab"><b>★ プロジェクト生成リスト</b><small id="tabListCount"></small></button>
+        <button class="tab" id="tabProjects" role="tab"><b>生成済みプロジェクト</b><small id="tabProjectsCount"></small></button>
+      </div>
+    </div>
+    <div class="toolbar" id="toolbar">
+      <select id="fCategory" aria-label="用途"></select>
+      <select id="fSeries" aria-label="シリーズ"></select>
+      <input type="search" id="fSearch" placeholder="曲名・ID・スタイル・タグで検索" aria-label="検索">
+      <label class="check"><input type="checkbox" id="fFav"> ★のみ</label>
+      <label class="check"><input type="checkbox" id="fLoop" checked> BGMをループ再生</label>
+      <button id="stopAll">全停止</button>
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+</nav>
+<main class="wrap" id="main"></main>
+<div class="bar">
+  <div class="wrap">
+    <span class="label">プロジェクト生成リスト：<b id="favCount">0</b> 曲</span>
+    <button id="showList">リストを見る</button>
+    <span class="spacer"></span>
+    <span class="hint" id="saveHint"></span>
+    <button class="primary" id="save">プロジェクト生成リストを保存</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const DATA = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const FAV_KEY = 'music-catalog.favorites';
+const cueIndex = new Map();
+for (const b of DATA.batches) for (const c of b.cues) cueIndex.set(c.key, {...c, batchTitle: b.title});
+
+let fav = new Set();
+try { fav = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch {}
+function saveFav() { try { localStorage.setItem(FAV_KEY, JSON.stringify([...fav])); } catch {} updateCounts(); }
+
+let view = {type: 'batch', id: DATA.batches[0]?.id};
+function readHash() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h === 'list') view = {type: 'list'};
+  else if (h === 'projects') view = {type: 'projects'};
+  else if (h.startsWith('batch=') && DATA.batches.some(b => b.id === h.slice(6))) view = {type: 'batch', id: h.slice(6)};
+  else if (!DATA.batches.length) view = {type: DATA.projects.length ? 'projects' : 'batch'};
+}
+function go(v) {
+  view = v;
+  const h = v.type === 'batch' ? 'batch=' + v.id : v.type;
+  if (location.hash.slice(1) !== h) history.replaceState(null, '', '#' + encodeURIComponent(h).replace('%3D', '='));
+  $('fCategory').value = 'all'; $('fSeries').value = 'all';
+  render();
+}
+
+// ---- 共通部品 ------------------------------------------------------------
+const toastEl = $('toast'); let toastTimer;
+function toast(msg, err = false, ms = 4200) {
+  toastEl.innerHTML = msg; toastEl.classList.toggle('err', err); toastEl.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
+}
+function stopAll(except) { document.querySelectorAll('audio').forEach(a => { if (a !== except) a.pause(); }); }
+function wireAudio(audio, card, loop) {
+  audio.loop = !!loop && $('fLoop').checked;
+  audio.dataset.loop = loop ? '1' : '';
+  audio.addEventListener('play', () => { stopAll(audio); card?.classList.add('playing'); });
+  audio.addEventListener('pause', () => card?.classList.remove('playing'));
+}
+async function copyText(text, label) {
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const t = document.createElement('textarea'); t.value = text; document.body.append(t); t.select();
+    document.execCommand('copy'); t.remove();
+  }
+  toast(`${esc(label)}のパスをコピーしました。REAPER の「ファイル → プロジェクトを開く」でファイル名欄に貼り付けてください。<br><code>${esc(text)}</code>`);
+}
+const fmtDate = s => s ? s.replace('T', ' ').slice(0, 16) : '';
+const fmtDur = c => c.loop || c.duration >= 1 ? c.duration.toFixed(1) + '秒' : Math.round(c.duration * 1000) + ' ms';
+
+function cueCard(c, {showBatch = false} = {}) {
+  const card = document.createElement('article');
+  card.className = 'card';
+  const tempo = c.bpm ? ` · ${c.bpm} BPM · ${esc(c.meter)}` : '';
+  const chips = [c.mood, c.style, ...(c.tags || [])].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join('');
+  const parts = (c.parts || []).map(p => `${esc(p.name)}(${esc(p.voices.join('/'))})`).join(' · ');
+  card.innerHTML = `
+    <div class="top"><span class="num">${String(c.index).padStart(2, '0')}</span><h4>${esc(c.title)}</h4></div>
+    <div class="id">${esc(c.id)}</div>
+    <div class="meta">${fmtDur(c)}${tempo} · ${c.loop ? 'LOOP' : 'ONE SHOT'}${showBatch ? `<br>${esc(c.batchTitle)}` : ''}<br>${parts}</div>
+    ${chips ? `<div class="chips">${chips}</div>` : ''}
+    ${c.description ? `<div class="meta">${esc(c.description)}</div>` : ''}
+    <div class="player">
+      <audio controls preload="none" src="${esc(c.src)}"></audio>
+      <div class="row"><span class="links"><a href="${esc(c.src)}" download>WAV</a>${c.midi_src ? `<a href="${esc(c.midi_src)}" download>MIDI</a>` : ''}</span>
+      <button class="fav"></button></div>
+    </div>`;
+  wireAudio(card.querySelector('audio'), card, c.loop);
+  const btn = card.querySelector('.fav');
+  if (c.has_score === false) {
+    btn.disabled = true; btn.textContent = '音符データなし'; btn.title = '音声のみの取り込み素材のため、REAPERプロジェクトは生成できません';
+    return card;
+  }
+  const paint = () => { const on = fav.has(c.key); btn.textContent = on ? '★ リストに追加済み' : '☆ リストに追加'; btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', on); };
+  btn.onclick = () => { fav.has(c.key) ? fav.delete(c.key) : fav.add(c.key); saveFav(); paint(); if ($('fFav').checked || view.type === 'list') render(); };
+  paint();
+  return card;
+}
+
+// ---- 表示 ----------------------------------------------------------------
+function matches(c) {
+  const q = $('fSearch').value.trim().toLowerCase();
+  if ($('fCategory').value !== 'all' && c.category !== $('fCategory').value) return false;
+  if ($('fSeries').value !== 'all' && (c.series || '') !== $('fSeries').value) return false;
+  if ($('fFav').checked && !fav.has(c.key)) return false;
+  if (q && !`${c.title} ${c.id} ${c.style} ${c.mood} ${(c.tags || []).join(' ')} ${c.description}`.toLowerCase().includes(q)) return false;
+  return true;
+}
+function setOptions(sel, items, allLabel) {
+  const keep = sel.value;
+  sel.innerHTML = `<option value="all">${allLabel}</option>` + items.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+  sel.value = items.some(([v]) => v === keep) ? keep : 'all';
+  sel.hidden = items.length < 2;
+}
+
+function renderBatch(main) {
+  const b = DATA.batches.find(x => x.id === view.id);
+  if (!b) { main.innerHTML = `<div class="empty">まだ曲がありません。<br>エージェントに「〇〇用のBGMを10曲作って」のように作曲を依頼してください。<br>書き出しが終わるとここにタブが追加されます。</div>`; return 0; }
+  const labelOf = new Map(b.categories.map(c => [c.id, c.label]));
+  const seriesLabel = new Map((b.series || []).map(s => [s.id, s.label]));
+  const seriesIds = [...new Set(b.cues.map(c => c.series || ''))];
+  setOptions($('fCategory'), b.categories.map(c => [c.id, c.label]), 'すべての用途');
+  setOptions($('fSeries'), seriesIds.filter(Boolean).map(s => [s, seriesLabel.get(s) || s]), 'すべてのシリーズ');
+  const intro = document.createElement('div');
+  intro.className = 'intro';
+  const details = [b.request && `【依頼内容】\n${b.request}`, b.spec && `【設計メモ】\n${b.spec}`].filter(Boolean).join('\n\n');
+  intro.innerHTML = `<h2>${esc(b.title)}</h2>
+    <p>${esc(b.description)}</p>
+    <p class="meta">${esc(b.id)} · ${b.count}曲 · 作成 ${fmtDate(b.created)}${b.agent ? ' · ' + esc(b.agent) : ''}${b.imported_from ? `<span class="badge">取り込み：${esc(b.imported_from)}</span>` : ''}</p>
+    ${details ? `<details><summary>依頼内容・設計メモ</summary><pre>${esc(details)}</pre></details>` : ''}`;
+  main.append(intro);
+  let n = 0;
+  for (const cat of b.categories) {
+    const inCat = b.cues.filter(c => c.category === cat.id && matches(c));
+    if (!inCat.length) continue;
+    const sec = document.createElement('section');
+    sec.className = 'cat';
+    sec.innerHTML = `<h2>${esc(cat.label)}</h2>${cat.note ? `<p class="catnote">${esc(cat.note)}</p>` : ''}`;
+    for (const s of seriesIds) {
+      const list = inCat.filter(c => (c.series || '') === s);
+      if (!list.length) continue;
+      if (seriesIds.length > 1) { const h = document.createElement('h3'); h.textContent = `${seriesLabel.get(s) || s || 'シリーズなし'} — ${list.length}曲`; sec.append(h); }
+      const grid = document.createElement('div'); grid.className = 'grid';
+      list.forEach(c => grid.append(cueCard(cueIndex.get(c.key))));
+      sec.append(grid); n += list.length;
+    }
+    main.append(sec);
+  }
+  if (!n) main.insertAdjacentHTML('beforeend', '<div class="empty">条件に合う曲がありません。</div>');
+  return n;
+}
+
+function renderList(main) {
+  setOptions($('fCategory'), [], ''); setOptions($('fSeries'), [], '');
+  const keys = [...fav];
+  const intro = document.createElement('div');
+  intro.className = 'intro';
+  intro.innerHTML = `<h2>★ プロジェクト生成リスト</h2>
+    <p>★を付けた曲の一覧です（全バッチ共通）。「プロジェクト生成リストを保存」を押してから、エージェントに<b>「最新のリストでREAPERプロジェクトを生成して」</b>と伝えてください。</p>
+    <p class="meta">保存先：リポジトリの <code>data/project-lists/</code> フォルダ（初回だけフォルダを選択）。直接保存に対応していないブラウザでは <code>project-list-latest.json</code> がダウンロードされます。</p>
+    ${keys.length ? '<button id="clearFav" class="small">リストを空にする</button>' : ''}`;
+  main.append(intro);
+  intro.querySelector('#clearFav')?.addEventListener('click', () => { if (confirm('プロジェクト生成リストを空にしますか？')) { fav.clear(); saveFav(); render(); } });
+  const found = keys.map(k => cueIndex.get(k)).filter(Boolean).filter(matches);
+  const lost = keys.filter(k => !cueIndex.has(k));
+  const byBatch = new Map();
+  for (const c of found) { if (!byBatch.has(c.batch)) byBatch.set(c.batch, []); byBatch.get(c.batch).push(c); }
+  for (const [batchId, list] of byBatch) {
+    const sec = document.createElement('section'); sec.className = 'cat';
+    sec.innerHTML = `<h2>${esc(list[0].batchTitle)}</h2><p class="catnote">${esc(batchId)}</p>`;
+    const grid = document.createElement('div'); grid.className = 'grid';
+    list.forEach(c => grid.append(cueCard(c)));
+    sec.append(grid); main.append(sec);
+  }
+  if (lost.length) {
+    const box = document.createElement('div'); box.className = 'intro';
+    box.innerHTML = `<p class="warn">カタログに見つからない曲がリストに残っています（バッチが削除された可能性）。</p><p class="meta">${lost.map(esc).join('<br>')}</p><button class="small">見つからない曲をリストから外す</button>`;
+    box.querySelector('button').onclick = () => { lost.forEach(k => fav.delete(k)); saveFav(); render(); };
+    main.append(box);
+  }
+  if (!keys.length) main.insertAdjacentHTML('beforeend', '<div class="empty">まだ★が付いていません。各バッチのタブで気に入った曲の「☆ リストに追加」を押してください。</div>');
+  return found.length;
+}
+
+function pathRow(label, abs) {
+  const row = document.createElement('div');
+  row.className = 'pathrow';
+  row.innerHTML = `<span class="what"><b>${esc(label)}</b><code title="${esc(abs)}">‎${esc(abs)}</code></span><button class="small">パスをコピー</button>`;
+  row.querySelector('button').onclick = () => copyText(abs, label);
+  return row;
+}
+
+function renderProjects(main) {
+  setOptions($('fCategory'), [], ''); setOptions($('fSeries'), [], '');
+  if (!DATA.projects.length) { main.innerHTML = '<div class="empty">まだREAPERプロジェクトは生成されていません。<br>★を付けて「プロジェクト生成リストを保存」を押し、エージェントに生成を依頼してください。</div>'; return 0; }
+  const q = $('fSearch').value.trim().toLowerCase();
+  let n = 0;
+  for (const job of DATA.projects) {
+    const cues = job.cues.filter(c => !q || `${c.title} ${c.id} ${c.batch}`.toLowerCase().includes(q));
+    if (!cues.length) continue;
+    const box = document.createElement('section'); box.className = 'job';
+    const v = job.verification || {};
+    box.innerHTML = `<h2>${esc(job.name || job.id)}</h2>
+      <p class="sub">${esc(job.id)} · ${fmtDate(job.created)} · ${job.cues.length}曲 × ${job.profiles.map(p => esc(p.label)).join(' / ')}
+      · ${v.ok ? '<span class="ok">検証済み</span>' : '<span class="warn">未検証の項目あり</span>'} · ${esc(v.listening || '')}</p>`;
+    if (job.overview) {
+      box.append(pathRow('全曲まとめ（サブプロジェクト）', job.overview.abs));
+      box.insertAdjacentHTML('beforeend', '<p class="meta">全曲まとめを開くと、各曲がサブプロジェクトとして並びます（トラック＝音源）。ソロで音源を切り替えて聴き比べ、アイテムをダブルクリックするとその曲の編集用プロジェクトが開きます。</p>');
+    }
+    box.append(pathRow('フォルダ', job.folder_abs));
+    for (const c of cues) {
+      n++;
+      const cb = document.createElement('div'); cb.className = 'cuebox';
+      cb.innerHTML = `<h3>${esc(c.title)}</h3><div class="meta">${esc(c.batch)}/${esc(c.id)} · ${c.loop ? 'LOOP' : 'ONE SHOT'}${c.bpm ? ` · ${c.bpm} BPM · ${esc(c.meter)}` : ''} · <a href="${esc(c.midi.src)}" download>共通MIDI</a></div>`;
+      const vs = document.createElement('div'); vs.className = 'versions';
+      for (const p of job.profiles) {
+        const ver = c.versions[p.name];
+        const el = document.createElement('div'); el.className = 'version';
+        if (!ver) { el.innerHTML = `<h4>${esc(p.label)}</h4><p class="meta ng">未制作</p>`; vs.append(el); continue; }
+        el.innerHTML = `<h4>${esc(p.label)}</h4>${ver.wav ? `<audio controls preload="none" src="${esc(ver.wav.src)}"></audio>` : '<p class="meta warn">試聴WAVなし</p>'}`;
+        if (ver.wav) wireAudio(el.querySelector('audio'), el, c.loop);
+        el.append(pathRow('編集用プロジェクト（RPP）', ver.rpp.abs));
+        vs.append(el);
+      }
+      cb.append(vs); box.append(cb);
+    }
+    main.append(box);
+  }
+  return n;
+}
+
+function render() {
+  stopAll();
+  const main = $('main'); main.replaceChildren();
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', 'false'));
+  const isBatch = view.type === 'batch';
+  $('fFav').parentElement.hidden = !isBatch;
+  let n = 0;
+  if (view.type === 'list') { $('tabList').setAttribute('aria-selected', 'true'); n = renderList(main); $('count').textContent = `${n} 曲`; }
+  else if (view.type === 'projects') { $('tabProjects').setAttribute('aria-selected', 'true'); n = renderProjects(main); $('count').textContent = `${n} 曲`; }
+  else {
+    document.querySelector(`.batchtabs .tab[data-id="${CSS.escape(view.id || '')}"]`)?.setAttribute('aria-selected', 'true');
+    n = renderBatch(main);
+    const b = DATA.batches.find(x => x.id === view.id);
+    $('count').textContent = b ? `${n} / ${b.cues.length} 曲` : '';
+  }
+}
+
+function updateCounts() {
+  const valid = [...fav].filter(k => cueIndex.has(k)).length;
+  $('favCount').textContent = valid;
+  $('tabListCount').textContent = `${valid} 曲`;
+  $('tabProjectsCount').textContent = `${DATA.projects.length} 件`;
+}
+
+// ---- プロジェクト生成リストの保存 ------------------------------------------
+const idb = (mode, fn) => new Promise((resolve, reject) => {
+  const open = indexedDB.open('music-catalog', 1);
+  open.onupgradeneeded = () => open.result.createObjectStore('kv');
+  open.onerror = () => reject(open.error);
+  open.onsuccess = () => {
+    const tx = open.result.transaction('kv', mode); const req = fn(tx.objectStore('kv'));
+    tx.oncomplete = () => resolve(req?.result); tx.onerror = () => reject(tx.error);
+  };
+});
+const getHandle = () => idb('readonly', s => s.get('projectListsDir')).catch(() => null);
+const setHandle = h => idb('readwrite', s => h ? s.put(h, 'projectListsDir') : s.delete('projectListsDir')).catch(() => null);
+
+async function projectListsDir(forcePick = false) {
+  let h = forcePick ? null : await getHandle();
+  if (h) {
+    let perm = await h.queryPermission({mode: 'readwrite'});
+    if (perm !== 'granted') perm = await h.requestPermission({mode: 'readwrite'});
+    if (perm === 'granted') return h;
+  }
+  toast('保存先として、このリポジトリの <b>data/project-lists</b> フォルダを選んでください（初回のみ）。', false, 8000);
+  h = await window.showDirectoryPicker({id: 'music-project-lists', mode: 'readwrite'});
+  // data/project-lists を選ぶのが基本。リポジトリのルートや data フォルダが選ばれた場合はその中を探す
+  if (h.name !== 'project-lists') {
+    const picked = h.name;
+    try { h = await h.getDirectoryHandle('project-lists'); }
+    catch {
+      try { h = await (await h.getDirectoryHandle('data')).getDirectoryHandle('project-lists'); }
+      catch { throw new Error(`「${picked}」が選ばれました。リポジトリ内の data/project-lists フォルダを選んでください。`); }
+    }
+  }
+  await setHandle(h);
+  return h;
+}
+async function writeFile(dir, name, text) {
+  const fh = await dir.getFileHandle(name, {create: true});
+  const w = await fh.createWritable(); await w.write(text); await w.close();
+}
+function stamp(d = new Date()) {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+function download(name, text) {
+  const url = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+async function saveProjectList(forcePick = false) {
+  const items = [...fav].filter(k => cueIndex.has(k)).map(k => { const c = cueIndex.get(k); return {key: k, batch: c.batch, id: c.id, title: c.title, category: c.category}; });
+  if (!items.length) { toast('リストが空です。曲の「☆ リストに追加」を押してから保存してください。', true); return; }
+  const text = JSON.stringify({format: 'music-project-list/1', saved_at: new Date().toISOString(), items}, null, 2);
+  const next = '<br>エージェントに<b>「最新のリストでREAPERプロジェクトを生成して」</b>と伝えてください。';
+  if ('showDirectoryPicker' in window) {
+    try {
+      const dir = await projectListsDir(forcePick);
+      const name = `project-list-${stamp()}.json`;
+      await writeFile(dir, 'latest.json', text); await writeFile(dir, name, text);
+      toast(`${items.length} 曲を data/project-lists/latest.json に保存しました（控え：${name}）。${next}`, false, 9000);
+      $('saveHint').innerHTML = '保存先：data/project-lists/ <button class="linkbtn" id="repick">変更</button>';
+      $('repick').onclick = () => saveProjectList(true);
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') { toast('保存をキャンセルしました。', true); return; }
+      toast(`フォルダに保存できなかったため、ダウンロードします。（${esc(e.message)}）`, true, 7000);
+    }
+  }
+  download('project-list-latest.json', text);
+  toast(`${items.length} 曲のリストを project-list-latest.json としてダウンロードしました（ダウンロードフォルダから自動で探します）。${next}`, false, 9000);
+}
+
+// ---- 初期化 ----------------------------------------------------------------
+for (const b of DATA.batches) {
+  const t = document.createElement('button');
+  t.className = 'tab'; t.dataset.id = b.id; t.setAttribute('role', 'tab');
+  t.innerHTML = `<b title="${esc(b.title)}">${esc(b.title)}</b><small>${fmtDate(b.created).slice(0, 10)} · ${b.cues.length}曲</small>`;
+  t.onclick = () => go({type: 'batch', id: b.id});
+  $('batchTabs').append(t);
+}
+$('tabList').onclick = () => go({type: 'list'});
+$('tabProjects').onclick = () => go({type: 'projects'});
+$('showList').onclick = () => go({type: 'list'});
+$('save').onclick = () => saveProjectList();
+['fCategory', 'fSeries', 'fFav'].forEach(id => $(id).onchange = render);
+$('fSearch').oninput = render;
+$('fLoop').onchange = () => document.querySelectorAll('audio').forEach(a => a.loop = !!a.dataset.loop && $('fLoop').checked);
+$('stopAll').onclick = () => document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+window.addEventListener('hashchange', () => { readHash(); render(); });
+const total = DATA.batches.reduce((s, b) => s + b.cues.length, 0);
+$('stats').textContent = `${DATA.batches.length} バッチ · ${total} 曲 · 生成済みプロジェクト ${DATA.projects.length} 件 · 更新 ${fmtDate(DATA.generated)}`;
+getHandle().then(h => { if (h) $('saveHint').textContent = '保存先：data/project-lists/'; });
+readHash(); updateCounts(); render();
+</script>
+</body>
+</html>

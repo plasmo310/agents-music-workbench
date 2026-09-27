@@ -1,0 +1,15 @@
+# 以前の試作（非公開）
+_reference/
+
+# 生成物
+# 作業データ（フォルダだけ残す）
+data/*/*
+!data/*/.gitkeep
+
+# 個人設定
+config.json
+
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
