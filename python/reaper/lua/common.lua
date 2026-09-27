@@ -53,8 +53,12 @@ function M.run(log_path, worker)
     else
       -- 失敗した作業タブは logs/ に保存し、未保存の変更がなければ閉じる（ファイルのロックを残さない）。
       -- 変更が残る場合は、保存確認ダイアログで止まらないよう開いたままにする。
-      local current = reaper.EnumProjects(-1, '')
-      if owned[current] then
+      local current, file = reaper.EnumProjects(-1, '')
+      -- タブの中身が利用者のプロジェクトに置き換わっている可能性があるため、
+      -- 未保存のタブか、このジョブのフォルダ内のファイルだけを対象にする
+      local job_dir = log_path:gsub('\\', '/'):match('^(.*)/logs/[^/]*$') or ''
+      local mine = file == '' or (job_dir ~= '' and file:gsub('\\', '/'):lower():find(job_dir:lower(), 1, true) == 1)
+      if owned[current] and mine then
         local keep = log_path:gsub('%.log$', '_failed.rpp')
         reaper.Main_SaveProjectEx(current, keep, 8)
         if reaper.IsProjectDirty(current) == 0 then
@@ -172,6 +176,30 @@ function M.fx(track, fx, plugin)
 end
 
 function M.db(value) return 10 ^ (value / 20) end
+
+-- 利用者が REAPER で開いているプロジェクトのファイル名（小文字・/区切り）
+local function open_files()
+  local files, i = {}, 0
+  while true do
+    local project, file = reaper.EnumProjects(i, '')
+    if not project then break end
+    if file ~= '' then files[#files + 1] = (file:gsub('\\', '/')):lower() end
+    i = i + 1
+  end
+  return files
+end
+
+-- 作り直す対象が開かれていると、ファイル（プレビュー音声 .rpp-PROX など）が使用中になり、
+-- REAPER がエラーダイアログで止まる。事前に確認して、分かるメッセージで止める。
+function M.assert_not_open(paths, what)
+  local wanted = {}
+  for _, path in ipairs(paths) do wanted[(path:gsub('\\', '/')):lower()] = path end
+  for _, file in ipairs(open_files()) do
+    if wanted[file] then
+      error(what .. 'が REAPER で開かれています。そのタブを閉じてから再実行してください: ' .. wanted[file], 0)
+    end
+  end
+end
 
 function M.mkdir(path) reaper.RecursiveCreateDirectory(path, 0) end
 

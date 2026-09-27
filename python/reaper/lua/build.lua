@@ -45,6 +45,7 @@ end
 local function build(ctx, cue, name, def)
   local out = ARGS.job_root .. '/' .. cue.name .. '/' .. name
   local rpp = out .. '/' .. cue.name .. '_' .. name .. '.rpp'
+  common.assert_not_open({ rpp, ARGS.job_root .. '/' .. job.id .. '_overview.rpp' }, '作り直すプロジェクトまたは全曲まとめ')
   if not ARGS.force and common.exists(out .. '/preview.wav') and common.exists(rpp) then
     ctx.say('SKIP ' .. cue.key .. ' ' .. name .. '（制作済み）')
     return
@@ -82,6 +83,9 @@ local function build(ctx, cue, name, def)
       else ctx.say('WARN ' .. cue.key .. ' ' .. name .. ' ' .. part.name .. ': この音源ではベンド幅を自動設定できません（滑音の幅が変わる可能性）') end
     end
     common.settle(0.25)
+    -- 待っている間に作業タブが置き換えられていないか（REAPER起動直後のプロジェクト読み込みなど）
+    assert(reaper.ValidatePtr2(project, tr, 'MediaTrack*') and reaper.EnumProjects(-1, '') == project,
+      '作業中のタブが別の処理で置き換えられました。REAPER の起動や読み込みが終わってから再実行してください')
     p.check_options()
     expected[ti] = p.snapshot()
     for _, s in ipairs(expected[ti]) do

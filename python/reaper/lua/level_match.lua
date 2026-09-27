@@ -6,6 +6,10 @@ local items = dofile(ARGS.data)
 
 common.run(ARGS.log, function(ctx)
   ctx.say('START level_match ' .. #items)
+  -- 曲のプロジェクトや全曲まとめが開かれていると、保存時のプレビュー音声（.rpp-PROX）の作り直しで止まる
+  for _, job in ipairs(items) do
+    common.assert_not_open({ job.rpp, job.overview }, '音量を合わせるプロジェクトまたは全曲まとめ')
+  end
   for _, job in ipairs(items) do
     local project = ctx.reopen(ctx.new_tab(), job.rpp)
     common.settle(0.25)

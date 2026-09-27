@@ -866,7 +866,7 @@
         const intro = document.createElement("div");
         intro.className = "intro";
         intro.innerHTML = `<h2>★ プロジェクト生成リスト</h2>
-    <p>★を付けた曲の一覧です（全バッチ共通）。「プロジェクト生成リストを保存」を押してから、エージェントに<b>「最新のリストでREAPERプロジェクトを生成して」</b>と伝えてください。</p>
+    <p>★を付けた曲の一覧です（全バッチ共通）。「プロジェクト生成リストを保存」を押してから、リポジトリの <b>generate-projects.bat</b>（macOS / Linux は generate-projects.sh）を実行してください。エージェントに「最新のリストでREAPERプロジェクトを生成して」と頼んでも作れます。</p>
     <p class="meta">REAPERプロジェクトを作る音源は、画面下の「音源」で選びます（複数選ぶと音源ごとに作られ、聴き比べられます）。</p>
     <p class="meta">保存先：リポジトリの <code>data/project-lists/</code> フォルダ（初回だけフォルダを選択）。直接保存に対応していないブラウザでは <code>project-list-latest.json</code> がダウンロードされます。</p>
     ${keys.length ? '<button id="clearFav" class="small">リストを空にする</button>' : ""}`;
@@ -930,7 +930,7 @@
         setOptions($("fSeries"), [], "");
         if (!DATA.projects.length) {
           main.innerHTML =
-            '<div class="empty">まだREAPERプロジェクトは生成されていません。<br>★を付けて「プロジェクト生成リストを保存」を押し、エージェントに生成を依頼してください。</div>';
+            '<div class="empty">まだREAPERプロジェクトは生成されていません。<br>★を付けて「プロジェクト生成リストを保存」を押し、generate-projects.bat を実行してください（エージェントに依頼しても作れます）。</div>';
           return 0;
         }
         const q = $("fSearch").value.trim().toLowerCase();
@@ -953,7 +953,7 @@
             );
             box.insertAdjacentHTML(
               "beforeend",
-              '<p class="meta">全曲まとめを開くと、各曲がサブプロジェクトとして並びます（トラック＝音源）。ソロで音源を切り替えて聴き比べ、アイテムをダブルクリックするとその曲の編集用プロジェクトが開きます。</p>',
+              '<p class="meta">全曲まとめを開くと、各曲がサブプロジェクトとして曲ごとのトラックに並びます（音源を複数選んだ場合は、曲のフォルダの中に音源ごとのトラック）。アイテムをダブルクリックするとその曲の編集用プロジェクトが開きます。</p>',
             );
           }
           box.append(pathRow("フォルダ", job.folder_abs));
@@ -1135,7 +1135,7 @@
           .map((n) => DATA.profiles.find((p) => p.name === n)?.label || n)
           .join(" / ");
         const next =
-          "<br>エージェントに<b>「最新のリストでREAPERプロジェクトを生成して」</b>と伝えてください。";
+          "<br><b>generate-projects.bat</b>（macOS / Linux は generate-projects.sh）を実行すると REAPER プロジェクトを作れます。";
         if ("showDirectoryPicker" in window) {
           try {
             const dir = await projectListsDir(forcePick);

@@ -75,6 +75,51 @@ def is_running() -> bool:
         return True
 
 
+def ensure_ready(
+    exe: Path, logs: Path, log=print, timeout: float = 600
+) -> None:
+    """REAPER が起動していなければ起動し、スクリプトを受け付けられるまで待つ。
+
+    起動と同時にスクリプトを渡すと、起動時のプロジェクト読み込みと作業タブの作成が重なり、
+    作業中のトラックが失われる。そこで REAPER だけを起動し、確認用の小さなスクリプトが
+    実行されたことを確かめてから本来のスクリプトを渡す。
+    """
+    if is_running():
+        return
+    log(
+        "  REAPER を起動します。起動時に案内ダイアログ（評価版の案内など）が出たら閉じてください"
+    )
+    subprocess.Popen(
+        [str(exe)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    ready = logs / "reaper_ready.txt"
+    ping = logs / "reaper_ready.lua"
+    ready.unlink(missing_ok=True)
+    ping.write_text(
+        f'local f = io.open({to_lua(ready)}, "w"); f:write("ready"); f:close()\n',
+        encoding="utf-8",
+    )
+    deadline, last_ping = time.time() + timeout, 0.0
+    while time.time() < deadline:
+        time.sleep(1)
+        if ready.exists():
+            time.sleep(2)  # 起動時のプロジェクト読み込みの完了を待つ余裕
+            ready.unlink(missing_ok=True)
+            log("  REAPER の起動を確認しました")
+            return
+        if time.time() - last_ping >= 5 and is_running():
+            last_ping = time.time()
+            subprocess.Popen(
+                [str(exe), "-nonewinst", str(ping.resolve())],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+    raise PipelineError(
+        f"REAPER の起動を {timeout:.0f} 秒以内に確認できませんでした。"
+        "REAPER にダイアログが出ていないか確認し、閉じてから再実行してください"
+    )
+
+
 def write_lua_data(path: Path, value) -> Path:
     path.write_text("return " + to_lua(value) + "\n", encoding="utf-8")
     return path
@@ -118,22 +163,12 @@ def run(
         'if not ok then local f = io.open(MUSIC_JOB.log, "a"); f:write("ERROR " .. tostring(err) .. "\\n"); f:close() end\n',
         encoding="utf-8",
     )
-    if is_running():
-        subprocess.Popen(
-            [str(exe), "-nonewinst", str(boot.resolve())],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-    else:
-        # 起動していなければ新しく起動してスクリプトを渡す（-nonewinst は起動中のREAPERにしか届かない）
-        log(
-            "  REAPER を起動します（起動時にダイアログが出たら閉じてください）"
-        )
-        subprocess.Popen(
-            [str(exe), str(boot.resolve())],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+    ensure_ready(exe, logs, log)
+    subprocess.Popen(
+        [str(exe), "-nonewinst", str(boot.resolve())],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
     deadline, shown = time.time() + timeout, 0
     while time.time() < deadline:
