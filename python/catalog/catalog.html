@@ -588,19 +588,20 @@
     <main class="wrap" id="main"></main>
     <div class="bar">
       <div class="wrap">
-        <span class="label"
-          >プロジェクト生成リスト：<b id="favCount">0</b> 曲</span
-        >
-        <button id="showList">リストを見る</button>
-        <span class="spacer"></span>
         <span
           class="instruments"
           id="instruments"
           title="REAPERプロジェクトを作る音源。選んだ音源のプラグインがREAPERに入っている必要があります"
           ><span>音源：</span></span
         >
+        <span class="spacer"></span>
         <span class="hint" id="saveHint"></span>
-        <button class="primary" id="save">プロジェクト生成リストを保存</button>
+        <button id="saveTab" title="いま開いているバッチのタブで★を付けた曲だけを保存します">
+          現在のタブを生成（<span id="tabFavCount">0</span> 曲）
+        </button>
+        <button class="primary" id="save" title="すべてのタブで★を付けた曲を保存します">
+          全てのタブを生成（<span id="allFavCount">0</span> 曲）
+        </button>
       </div>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -866,7 +867,7 @@
         const intro = document.createElement("div");
         intro.className = "intro";
         intro.innerHTML = `<h2>★ プロジェクト生成リスト</h2>
-    <p>★を付けた曲の一覧です（全バッチ共通）。「プロジェクト生成リストを保存」を押してから、リポジトリの <b>generate-projects.bat</b>（macOS / Linux は generate-projects.sh）を実行してください。エージェントに「最新のリストでREAPERプロジェクトを生成して」と頼んでも作れます。</p>
+    <p>★を付けた曲の一覧です（全バッチ共通）。画面下の「全タブの★を保存」（またはバッチのタブで「このタブの★を保存」）を押してから、リポジトリの <b>generate-projects.bat</b>（macOS / Linux は generate-projects.sh）を実行してください。エージェントに「最新のリストでREAPERプロジェクトを生成して」と頼んでも作れます。</p>
     <p class="meta">REAPERプロジェクトを作る音源は、画面下の「音源」で選びます（複数選ぶと音源ごとに作られ、聴き比べられます）。</p>
     <p class="meta">保存先：リポジトリの <code>data/project-lists/</code> フォルダ（初回だけフォルダを選択）。直接保存に対応していないブラウザでは <code>project-list-latest.json</code> がダウンロードされます。</p>
     ${keys.length ? '<button id="clearFav" class="small">リストを空にする</button>' : ""}`;
@@ -930,7 +931,7 @@
         setOptions($("fSeries"), [], "");
         if (!DATA.projects.length) {
           main.innerHTML =
-            '<div class="empty">まだREAPERプロジェクトは生成されていません。<br>★を付けて「プロジェクト生成リストを保存」を押し、generate-projects.bat を実行してください（エージェントに依頼しても作れます）。</div>';
+            '<div class="empty">まだREAPERプロジェクトは生成されていません。<br>★を付けて「全タブの★を保存」または「このタブの★を保存」を押し、generate-projects.bat を実行してください（エージェントに依頼しても作れます）。</div>';
           return 0;
         }
         const q = $("fSearch").value.trim().toLowerCase();
@@ -1014,13 +1015,30 @@
           const b = DATA.batches.find((x) => x.id === view.id);
           $("count").textContent = b ? `${n} / ${b.cues.length} 曲` : "";
         }
+        updateCounts();
       }
 
       function updateCounts() {
         const valid = [...fav].filter((k) => cueIndex.has(k)).length;
-        $("favCount").textContent = valid;
         $("tabListCount").textContent = `${valid} 曲`;
         $("tabProjectsCount").textContent = `${DATA.projects.length} 件`;
+        $("allFavCount").textContent = valid;
+        const tabKeys = favKeys(view.type === "batch" ? view.id : null);
+        $("tabFavCount").textContent = view.type === "batch" ? tabKeys.length : "-";
+        $("saveTab").disabled = view.type !== "batch";
+        $("saveTab").title =
+          view.type === "batch"
+            ? "いま開いているバッチのタブで★を付けた曲だけを保存します"
+            : "バッチのタブを開くと使えます";
+      }
+
+      // batchId を渡すとそのバッチの★だけ、null なら全バッチの★
+      function favKeys(batchId = null) {
+        return [...fav].filter(
+          (k) =>
+            cueIndex.has(k) &&
+            (batchId === null || cueIndex.get(k).batch === batchId),
+        );
       }
 
       // ---- プロジェクト生成リストの保存 ------------------------------------------
@@ -1100,10 +1118,9 @@
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1500);
       }
-      async function saveProjectList(forcePick = false) {
-        const items = [...fav]
-          .filter((k) => cueIndex.has(k))
-          .map((k) => {
+      // batchId を渡すとそのバッチの★だけを保存する（null なら全タブ）
+      async function saveProjectList(forcePick = false, batchId = null) {
+        const items = favKeys(batchId).map((k) => {
             const c = cueIndex.get(k);
             return {
               key: k,
@@ -1113,9 +1130,12 @@
               category: c.category,
             };
           });
+        const scope = batchId
+          ? `「${esc(DATA.batches.find((b) => b.id === batchId)?.title || batchId)}」タブの`
+          : "全タブの";
         if (!items.length) {
           toast(
-            "リストが空です。曲の「☆ リストに追加」を押してから保存してください。",
+            `${scope}★が0曲です。曲の「☆ リストに追加」を押してから保存してください。`,
             true,
           );
           return;
@@ -1143,13 +1163,13 @@
             await writeFile(dir, "latest.json", text);
             await writeFile(dir, name, text);
             toast(
-              `${items.length} 曲 × ${esc(labels)} を data/project-lists/latest.json に保存しました（控え：${name}）。${next}`,
+              `${scope}${items.length} 曲 × ${esc(labels)} を data/project-lists/latest.json に保存しました（控え：${name}）。${next}`,
               false,
               9000,
             );
             $("saveHint").innerHTML =
               '保存先：data/project-lists/ <button class="linkbtn" id="repick">変更</button>';
-            $("repick").onclick = () => saveProjectList(true);
+            $("repick").onclick = () => saveProjectList(true, batchId);
             return;
           } catch (e) {
             if (e.name === "AbortError") {
@@ -1165,7 +1185,7 @@
         }
         download("project-list-latest.json", text);
         toast(
-          `${items.length} 曲 × ${esc(labels)} のリストを project-list-latest.json としてダウンロードしました（ダウンロードフォルダから自動で探します）。${next}`,
+          `${scope}${items.length} 曲 × ${esc(labels)} のリストを project-list-latest.json としてダウンロードしました（ダウンロードフォルダから自動で探します）。${next}`,
           false,
           9000,
         );
@@ -1221,8 +1241,9 @@
       }
       $("tabList").onclick = () => go({ type: "list" });
       $("tabProjects").onclick = () => go({ type: "projects" });
-      $("showList").onclick = () => go({ type: "list" });
       $("save").onclick = () => saveProjectList();
+      $("saveTab").onclick = () =>
+        view.type === "batch" && saveProjectList(false, view.id);
       ["fCategory", "fSeries", "fFav"].forEach(
         (id) => ($(id).onchange = render),
       );

@@ -5,7 +5,7 @@
 ## 流れ
 
 1. **作曲**（スキル `compose-music`）：`data/library/<バッチID>/compose.py` に音符データを書き、`python python/cli.py render <バッチID>` で WAV・MIDI・一覧データを書き出す。試聴カタログ `data/library/index.html` にバッチのタブが追加される。
-2. **選曲**（利用者）：カタログで試聴して★を付け、「プロジェクト生成リストを保存」を押す → `data/project-lists/latest.json`（またはダウンロードフォルダの `project-list-latest.json`）。
+2. **選曲**（利用者）：カタログで試聴して★を付け、「全タブの★を保存」または「このタブの★を保存」を押す → `data/project-lists/latest.json`（またはダウンロードフォルダの `project-list-latest.json`）。
 3. **プロジェクト生成**（スキル `create-reaper-project`、エージェントなしでも可）：`python python/cli.py project all` で、最新のリストの曲を音源別の REAPER プロジェクトにする → `data/projects/<ジョブID>/`。利用者はルートの `generate-projects.bat` / `generate-projects.sh` で同じ処理を実行できる。
 
 依頼に応じて、該当するスキル（本体は `.agents/skills/`）を読んでから作業すること。

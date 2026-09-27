@@ -20,7 +20,7 @@ description: BGM・ジングル・効果音などの候補曲を作曲し、試�
 4. **compose.py を書く**：API は [references/score-api.md](references/score-api.md)。`BATCH` に依頼文（`request`）・使用エージェント名（`agent`、例 "Claude Code" / "Codex"）・カテゴリを記録し、`cues()` で `Cue` のリストを返す。
 5. **書き出す**：`python python/cli.py render <バッチID>`。WAV/MIDI/manifest/verification を出力し、カタログも更新される。
    - エラーや `注意`（移調・テンポ違いだけの重複など）が出たら compose.py を直して `--force` で書き出し直す。
-6. **報告する**：候補の一覧（ID・曲名・狙い）と `data/library/index.html` を案内し、「気に入った曲に★を付けて『プロジェクト生成リストを保存』→『最新のリストでREAPERプロジェクトを生成して』と伝えてください」と伝える。
+6. **報告する**：候補の一覧（ID・曲名・狙い）と `data/library/index.html` を案内し、「気に入った曲に★を付けて『全タブの★を保存』（そのバッチだけなら『このタブの★を保存』）→『最新のリストでREAPERプロジェクトを生成して』と伝えてください」と伝える。
 
 ## 改訂の依頼
 

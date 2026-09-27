@@ -35,7 +35,7 @@ def latest(cfg: dict | None = None) -> Path:
     if not found:
         raise ProjectListError(
             "プロジェクト生成リストが見つかりません。試聴カタログ（data/library/index.html）で★を付け、"
-            "「プロジェクト生成リストを保存」を押してください。"
+            "「全タブの★を保存」または「このタブの★を保存」を押してください。"
         )
     return found[0]
 
