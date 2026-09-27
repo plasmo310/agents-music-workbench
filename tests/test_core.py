@@ -138,6 +138,20 @@ class PipelineDataTest(unittest.TestCase):
             self.assertIn(rows[0]['key'], html)
 
 
+class ProfileTest(unittest.TestCase):
+    def test_priority(self):
+        from reaper import profiles
+        self.assertEqual(profiles.resolve(['massive'], ['magical8bit'])[0], ['massive'])        # --profiles が最優先
+        self.assertEqual(profiles.resolve(None, ['magical8bit', 'reasynth'])[0], ['magical8bit', 'reasynth'])
+        self.assertEqual(profiles.resolve(None, None)[0], config.load()['profiles'])
+        with self.assertRaises(profiles.ProfileError):
+            profiles.resolve(['unknown'], None)
+        self.assertTrue(any(p['name'] == 'reasynth' for p in profiles.available()))
+
+    def test_default_is_reasynth(self):
+        self.assertEqual(config.DEFAULTS['profiles'], ['reasynth'])
+
+
 class MiscTest(unittest.TestCase):
     def test_to_lua(self):
         self.assertEqual(to_lua({'a': [1, 2.5, True, None, '日本"語']}), '{["a"]={1,2.5,true,nil,"日本\\"語"}}')

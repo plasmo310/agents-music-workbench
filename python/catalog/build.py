@@ -44,7 +44,9 @@ def data() -> dict:
         for c in b['cues']:
             c['src'] = f'{b["id"]}/{c["path"]}'
             c['midi_src'] = f'{b["id"]}/{c["midi"]}' if c.get('midi') else None
-    return dict(generated=dt.datetime.now().isoformat(timespec='seconds'), batches=batches, projects=list_projects())
+    from reaper import profiles
+    return dict(generated=dt.datetime.now().isoformat(timespec='seconds'), batches=batches, projects=list_projects(),
+                profiles=profiles.available())
 
 
 def build() -> Path:

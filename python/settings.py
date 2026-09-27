@@ -30,7 +30,7 @@ CONFIG_FILE = ROOT / 'config.json'
 
 DEFAULTS = {
     'reaper_path': '',
-    'profiles': ['magical8bit', 'massive'],
+    'profiles': ['reasynth'],   # 追加の音源なしで動く REAPER 標準の ReaSynth
     'downloads_dir': '',
     'reaper_timeout_sec': 1800,
 }

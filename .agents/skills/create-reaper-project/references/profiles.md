@@ -1,14 +1,14 @@
 # 音源プロファイル
 
-`python/reaper/lua/profiles/<名前>.lua`。`--profiles <名前>` や `config.json` の `profiles` で指定する。
+`python/reaper/lua/profiles/<名前>.lua`。既定は `reasynth`。試聴カタログの保存時の選択、`--profiles <名前>`、`config.json` の `profiles` で指定する（優先順：`--profiles` ＞ リスト ＞ config.json ＞ 既定）。
 
 ## 同梱
 
 | 名前 | 音源 | 備考 |
 |---|---|---|
-| `magical8bit` | Magical 8bit Plug 2（YMCK、無料） | パルス・三角波・ノイズ。滑音があるパートはベンド幅を自動設定 |
-| `massive` | Native Instruments MASSIVE | MASSIVE X ではない。ベンド幅はホストから設定できない |
-| `reasynth` | ReaSynth（REAPER標準） | 追加音源なしで流れを試す用。ノイズ源がないため打楽器は近似 |
+| `magical8bit` | Magical 8bit Plug 2（YMCK、無料、任意） | パルス・三角波・ノイズ。滑音があるパートはベンド幅を自動設定 |
+| `massive` | Native Instruments MASSIVE（任意） | MASSIVE X ではない。ベンド幅はホストから設定できない |
+| `reasynth` | ReaSynth（REAPER標準、既定） | 追加音源なしで動く。ノイズ源がないため打楽器は近似 |
 
 ## 書き方
 

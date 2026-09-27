@@ -5,12 +5,7 @@ import re
 import sys
 
 import settings
-
-
-def _plugin_name(profile: str) -> str | None:
-    text = (settings.PROFILES_DIR / f'{profile}.lua').read_text(encoding='utf-8')
-    m = re.search(r"plugin\s*=\s*'([^']+)'", text)
-    return m.group(1) if m else None
+from reaper import profiles as profile_list
 
 
 def run() -> int:
@@ -35,10 +30,9 @@ def run() -> int:
     if not inis:
         print(f'- REAPERのプラグイン一覧が見つかりません（{ini_dir}）')
 
-    profiles = sorted(p.stem for p in settings.PROFILES_DIR.glob('*.lua'))
-    print(f'音源プロファイル（既定: {", ".join(cfg["profiles"])}）')
-    for name in profiles:
-        plugin = _plugin_name(name) or '?'
+    print(f'音源プロファイル（既定: {", ".join(cfg["profiles"])}。カタログで保存するときや --profiles で選べます）')
+    for name in profile_list.names():
+        plugin = profile_list.plugin(name) or '?'
         display = re.sub(r'^\w+:\s*', '', plugin)
         found = display in cache if inis else None
         state = '登録あり' if found else '登録なし' if found is False else '未確認'

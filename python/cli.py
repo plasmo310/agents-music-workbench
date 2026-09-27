@@ -54,21 +54,16 @@ def cmd_project_list(args):
     for item in sel['items']:
         print(f'  {item["key"]}  {item["title"]}  [{item["category"]}]')
     print(f'計 {len(sel["items"])} 件')
-
-
-def _profiles(args, cfg):
-    names = args.profiles or cfg['profiles']
-    missing = [n for n in names if not (settings.PROFILES_DIR / f'{n}.lua').is_file()]
-    if missing:
-        raise SystemExit(f'音源プロファイルがありません: {", ".join(missing)}（{settings.rel(settings.PROFILES_DIR)}）')
-    return names
+    from reaper import profiles
+    names, origin = profiles.resolve(None, sel['profiles'])
+    print(f'音源: {", ".join(profiles.label(n) for n in names)}（{origin}）')
 
 
 def cmd_project(args):
     from reaper import pipeline
     cfg = settings.load()
     if args.action in ('prepare', 'all'):
-        job = pipeline.prepare(args.list, _profiles(args, cfg), name=args.name)
+        job = pipeline.prepare(args.list, args.profiles, name=args.name)
         print(f'準備完了: {settings.rel(job)}')
         if args.action == 'prepare':
             print(f'次に実行: python python/cli.py project build {job.name}')
@@ -116,7 +111,7 @@ def main(argv=None):
                    help='prepare=リストからMIDI等を準備 / build=REAPERで制作 / all=両方')
     s.add_argument('job', nargs='?', help='build 対象のジョブ（data/projects/ 内のフォルダ名。省略時は最新）')
     s.add_argument('--list', help='プロジェクト生成リストのJSON（省略時は最新）')
-    s.add_argument('--profiles', nargs='+', help='音源プロファイル（既定は config.json の profiles）')
+    s.add_argument('--profiles', nargs='+', help='音源プロファイル（例: reasynth magical8bit massive）。省略時はリストで選んだ音源 → config.json → reasynth')
     s.add_argument('--name', help='ジョブ名に付ける短い名前')
     s.add_argument('--stage', choices=['pilot', 'all'], default='all',
                    help='pilot=先頭1曲だけ制作して止める / all=全工程（既定）')
@@ -133,7 +128,7 @@ def main(argv=None):
     try:
         return args.func(args) or 0
     except Exception as e:  # 利用者向けに要点だけ表示する
-        if getattr(args, 'command', '') and type(e).__name__ in ('BatchError', 'ScoreError', 'ProjectListError', 'PipelineError'):
+        if getattr(args, 'command', '') and type(e).__name__ in ('BatchError', 'ScoreError', 'ProjectListError', 'PipelineError', 'ProfileError'):
             print(f'エラー: {e}', file=sys.stderr)
             return 2
         raise

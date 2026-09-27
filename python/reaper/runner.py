@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -35,6 +36,19 @@ def to_lua(value) -> str:
     raise TypeError(type(value))
 
 
+def is_running() -> bool:
+    """REAPER が起動しているか。確認できない環境では起動中とみなす。"""
+    try:
+        if sys.platform == 'win32':
+            out = subprocess.run(['tasklist', '/FI', 'IMAGENAME eq reaper.exe', '/NH'], capture_output=True, text=True,
+                                 errors='replace', timeout=15).stdout
+            return 'reaper.exe' in out.lower()
+        return subprocess.run(['pgrep', '-x', 'REAPER' if sys.platform == 'darwin' else 'reaper'],
+                              capture_output=True, timeout=15).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return True
+
+
 def write_lua_data(path: Path, value) -> Path:
     path.write_text('return ' + to_lua(value) + '\n', encoding='utf-8')
     return path
@@ -58,7 +72,12 @@ def run(exe: Path, script: str, job_dir: Path, stage: str, timeout: float, log=p
         f'local ok, err = pcall(dofile, {to_lua(script_path)})\n'
         'if not ok then local f = io.open(MUSIC_JOB.log, "a"); f:write("ERROR " .. tostring(err) .. "\\n"); f:close() end\n',
         encoding='utf-8')
-    subprocess.Popen([str(exe), '-nonewinst', str(boot.resolve())], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if is_running():
+        subprocess.Popen([str(exe), '-nonewinst', str(boot.resolve())], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        # 起動していなければ新しく起動してスクリプトを渡す（-nonewinst は起動中のREAPERにしか届かない）
+        log('  REAPER を起動します（起動時にダイアログが出たら閉じてください）')
+        subprocess.Popen([str(exe), str(boot.resolve())], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     deadline, shown = time.time() + timeout, 0
     while time.time() < deadline:

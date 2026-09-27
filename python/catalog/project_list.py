@@ -83,4 +83,8 @@ def load(path: str | Path | None = None) -> dict:
         raise ProjectListError('library に存在しない曲がリストに含まれています（別の曲で代用しません）: ' + ', '.join(missing))
     if not items:
         raise ProjectListError(f'リストが空です: {source}')
-    return dict(source=str(source), saved_at=data.get('saved_at') if isinstance(data, dict) else None, items=items)
+    profiles = data.get('profiles') if isinstance(data, dict) else None
+    if profiles is not None and not (isinstance(profiles, list) and all(isinstance(p, str) for p in profiles)):
+        raise ProjectListError(f'profiles は音源プロファイル名のリストにしてください: {profiles!r}')
+    return dict(source=str(source), saved_at=data.get('saved_at') if isinstance(data, dict) else None, items=items,
+                profiles=profiles or None)

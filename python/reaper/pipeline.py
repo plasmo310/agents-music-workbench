@@ -27,6 +27,7 @@ from catalog import project_list
 from music import batch, midi, synth
 from music.score import cue_from_dict, parse_meter
 
+from . import profiles as profile_list
 from .runner import PipelineError, run, write_lua_data
 
 TAIL = 0.35
@@ -49,15 +50,11 @@ def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding='utf-8'))
 
 
-def _profile_label(name: str) -> str:
-    text = (settings.PROFILES_DIR / f'{name}.lua').read_text(encoding='utf-8')
-    m = re.search(r"label\s*=\s*'([^']+)'", text)
-    return m.group(1) if m else name
-
-
-def prepare(list_path: str | None, profiles: list[str], name: str | None = None, log=print) -> Path:
+def prepare(list_path: str | None, profiles: list[str] | None = None, name: str | None = None, log=print) -> Path:
     sel = project_list.load(list_path)
+    profiles, origin = profile_list.resolve(profiles, sel.get('profiles'))
     log(f'リスト: {sel["source"]}（{len(sel["items"])} 曲）')
+    log(f'音源: {", ".join(profile_list.label(p) for p in profiles)}（{origin}で指定）')
     stamp = dt.datetime.now().strftime('%Y%m%d-%H%M%S')
     slug = re.sub(r'[^A-Za-z0-9_\-]+', '-', name).strip('-') if name else ''
     job_id = f'{stamp}-{slug}' if slug else stamp
@@ -185,7 +182,7 @@ def build(folder: Path, cfg: dict, stage: str = 'all', force: bool = False, log=
              'アイテムをダブルクリックすると、その曲の編集用プロジェクトが開きます。保存すると、ここにも反映されます。')
     data = write_lua_data(folder / 'logs' / 'overview_data.lua', dict(
         rpp=overview.resolve().as_posix(), notes=notes, entries=entries,
-        profiles=[dict(name=p, label=_profile_label(p)) for p in job['profiles']]))
+        profiles=[dict(name=p, label=profile_list.label(p)) for p in job['profiles']]))
     run(exe, 'overview.lua', folder, 'overview', timeout, log, data=data.resolve().as_posix())
 
     # 5. 検証と納品情報
@@ -229,7 +226,7 @@ def deliver(folder: Path, job: dict, overview: Path, warnings: list[str]) -> dic
         cues.append(dict(cue, midi=f'{cue["name"]}/score.mid', versions=versions))
     if not overview.exists():
         failures.append('全曲まとめプロジェクトがありません')
-    profiles = [dict(name=p, label=_profile_label(p)) for p in job['profiles']]
+    profiles = [dict(name=p, label=profile_list.label(p)) for p in job['profiles']]
     verification = dict(
         ok=not failures, failures=failures, warnings=warnings,
         checks=['各RPPを保存→再読み込みし、音源ロード・音色パラメーター・MIDIノート数を照合（logs/pilot.log, remaining.log）',

@@ -73,6 +73,11 @@ audio{width:100%;height:34px}
 .bar .label b{color:var(--star);font-size:18px}
 .bar .spacer{flex:1}
 .bar .hint{font-size:12px;color:var(--muted)}
+.instruments{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.instruments label{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:99px;padding:4px 11px;cursor:pointer;color:var(--text);user-select:none}
+.instruments label:has(input:checked){border-color:var(--accent);background:#1d3a35}
+.instruments input{margin:0;accent-color:var(--accent)}
+.instruments small{color:var(--muted);font-size:11px}
 .linkbtn{background:none;border:none;color:var(--link);padding:0;font-size:12px;text-decoration:underline}
 .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#243447;border:1px solid var(--accent);border-radius:9px;padding:10px 16px;font-size:13px;max-width:min(680px,92vw);z-index:9;opacity:0;pointer-events:none;transition:opacity .2s;line-height:1.6}
 .toast.show{opacity:1}
@@ -130,6 +135,7 @@ audio{width:100%;height:34px}
     <span class="label">プロジェクト生成リスト：<b id="favCount">0</b> 曲</span>
     <button id="showList">リストを見る</button>
     <span class="spacer"></span>
+    <span class="instruments" id="instruments" title="REAPERプロジェクトを作る音源。選んだ音源のプラグインがREAPERに入っている必要があります"><span>音源：</span></span>
     <span class="hint" id="saveHint"></span>
     <button class="primary" id="save">プロジェクト生成リストを保存</button>
   </div>
@@ -140,6 +146,7 @@ const DATA = /*__DATA__*/null;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const FAV_KEY = 'music-catalog.favorites';
+const PROFILE_KEY = 'music-catalog.profiles';
 const cueIndex = new Map();
 for (const b of DATA.batches) for (const c of b.cues) cueIndex.set(c.key, {...c, batchTitle: b.title});
 
@@ -276,6 +283,7 @@ function renderList(main) {
   intro.className = 'intro';
   intro.innerHTML = `<h2>★ プロジェクト生成リスト</h2>
     <p>★を付けた曲の一覧です（全バッチ共通）。「プロジェクト生成リストを保存」を押してから、エージェントに<b>「最新のリストでREAPERプロジェクトを生成して」</b>と伝えてください。</p>
+    <p class="meta">REAPERプロジェクトを作る音源は、画面下の「音源」で選びます（複数選ぶと音源ごとに作られ、聴き比べられます）。</p>
     <p class="meta">保存先：リポジトリの <code>data/project-lists/</code> フォルダ（初回だけフォルダを選択）。直接保存に対応していないブラウザでは <code>project-list-latest.json</code> がダウンロードされます。</p>
     ${keys.length ? '<button id="clearFav" class="small">リストを空にする</button>' : ''}`;
   main.append(intro);
@@ -422,14 +430,16 @@ function download(name, text) {
 async function saveProjectList(forcePick = false) {
   const items = [...fav].filter(k => cueIndex.has(k)).map(k => { const c = cueIndex.get(k); return {key: k, batch: c.batch, id: c.id, title: c.title, category: c.category}; });
   if (!items.length) { toast('リストが空です。曲の「☆ リストに追加」を押してから保存してください。', true); return; }
-  const text = JSON.stringify({format: 'music-project-list/1', saved_at: new Date().toISOString(), items}, null, 2);
+  const profiles = chosenProfiles();
+  const text = JSON.stringify({format: 'music-project-list/1', saved_at: new Date().toISOString(), profiles, items}, null, 2);
+  const labels = profiles.map(n => DATA.profiles.find(p => p.name === n)?.label || n).join(' / ');
   const next = '<br>エージェントに<b>「最新のリストでREAPERプロジェクトを生成して」</b>と伝えてください。';
   if ('showDirectoryPicker' in window) {
     try {
       const dir = await projectListsDir(forcePick);
       const name = `project-list-${stamp()}.json`;
       await writeFile(dir, 'latest.json', text); await writeFile(dir, name, text);
-      toast(`${items.length} 曲を data/project-lists/latest.json に保存しました（控え：${name}）。${next}`, false, 9000);
+      toast(`${items.length} 曲 × ${esc(labels)} を data/project-lists/latest.json に保存しました（控え：${name}）。${next}`, false, 9000);
       $('saveHint').innerHTML = '保存先：data/project-lists/ <button class="linkbtn" id="repick">変更</button>';
       $('repick').onclick = () => saveProjectList(true);
       return;
@@ -439,10 +449,32 @@ async function saveProjectList(forcePick = false) {
     }
   }
   download('project-list-latest.json', text);
-  toast(`${items.length} 曲のリストを project-list-latest.json としてダウンロードしました（ダウンロードフォルダから自動で探します）。${next}`, false, 9000);
+  toast(`${items.length} 曲 × ${esc(labels)} のリストを project-list-latest.json としてダウンロードしました（ダウンロードフォルダから自動で探します）。${next}`, false, 9000);
+}
+
+// ---- 音源の選択（プロジェクト生成リストに保存される） ------------------------
+function chosenProfiles() {
+  return [...document.querySelectorAll('#instruments input:checked')].map(i => i.value);
+}
+function renderInstruments() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null'); } catch {}
+  const names = DATA.profiles.map(p => p.name);
+  const initial = Array.isArray(saved) && saved.some(n => names.includes(n)) ? saved : DATA.profiles.filter(p => p.default).map(p => p.name);
+  for (const p of DATA.profiles) {
+    const label = document.createElement('label');
+    label.title = p.plugin || '';
+    label.innerHTML = `<input type="checkbox" value="${esc(p.name)}"${initial.includes(p.name) ? ' checked' : ''}>${esc(p.label)}${p.default ? '<small>既定</small>' : ''}`;
+    label.querySelector('input').addEventListener('change', e => {
+      if (!chosenProfiles().length) { e.target.checked = true; toast('音源は1つ以上選んでください。', true); return; }
+      try { localStorage.setItem(PROFILE_KEY, JSON.stringify(chosenProfiles())); } catch {}
+    });
+    $('instruments').append(label);
+  }
 }
 
 // ---- 初期化 ----------------------------------------------------------------
+renderInstruments();
 for (const b of DATA.batches) {
   const t = document.createElement('button');
   t.className = 'tab'; t.dataset.id = b.id; t.setAttribute('role', 'tab');
