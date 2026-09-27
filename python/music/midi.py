@@ -1,4 +1,5 @@
 """Standard MIDI File（Type 1 / 960 PPQ）の書き出しと検証用の読み込み。"""
+
 from __future__ import annotations
 
 import struct
@@ -19,12 +20,12 @@ def _vlq(n: int) -> bytes:
 def _chunk(events: list[tuple[int, int, bytes]]) -> bytes:
     # 同時刻では note-off を note-on より先に置く（同音の連打が正しく切れるように）
     events.sort(key=lambda e: (e[0], e[1]))
-    out, last = b'', 0
+    out, last = b"", 0
     for at, _, msg in events:
         out += _vlq(at - last) + msg
         last = at
-    out += b'\x00\xff\x2f\x00'
-    return b'MTrk' + struct.pack('>I', len(out)) + out
+    out += b"\x00\xff\x2f\x00"
+    return b"MTrk" + struct.pack(">I", len(out)) + out
 
 
 def tick(beats: float) -> int:
@@ -49,19 +50,28 @@ def bend_range(cue: Cue, part: str) -> int:
 def write_midi(cue: Cue, path: Path) -> None:
     num, den = parse_meter(cue.meter)
     tempo = round(60_000_000 / cue.tempo)
-    conductor = [(0, 1, b'\xff\x51\x03' + tempo.to_bytes(3, 'big')),
-                 (0, 1, b'\xff\x58\x04' + bytes([num, den.bit_length() - 1, 24, 8]))]
-    name = cue.title.encode('utf-8')
-    conductor.append((0, 0, b'\xff\x03' + _vlq(len(name)) + name))
+    conductor = [
+        (0, 1, b"\xff\x51\x03" + tempo.to_bytes(3, "big")),
+        (0, 1, b"\xff\x58\x04" + bytes([num, den.bit_length() - 1, 24, 8])),
+    ]
+    name = cue.title.encode("utf-8")
+    conductor.append((0, 0, b"\xff\x03" + _vlq(len(name)) + name))
     tracks = [_chunk(conductor)]
     for j, part in enumerate(cue.parts):
         ch = _channels()[j % 15]
-        label = part.encode('utf-8')
-        events = [(0, 0, b'\xff\x03' + _vlq(len(label)) + label)]
+        label = part.encode("utf-8")
+        events = [(0, 0, b"\xff\x03" + _vlq(len(label)) + label)]
         rng = bend_range(cue, part)
         if rng:
             # RPN 0 でピッチベンド幅を指定し、音源側と一致させる
-            for cc, val in ((101, 0), (100, 0), (6, rng), (38, 0), (101, 127), (100, 127)):
+            for cc, val in (
+                (101, 0),
+                (100, 0),
+                (6, rng),
+                (38, 0),
+                (101, 127),
+                (100, 127),
+            ):
                 events.append((0, 1, bytes([0xB0 | ch, cc, val])))
         for n in cue.notes:
             if n.part != part:
@@ -74,28 +84,40 @@ def write_midi(cue: Cue, path: Path) -> None:
                 for s in range(steps + 1):
                     value = 8192 + round(n.glide / rng * 8191 * s / steps)
                     value = max(0, min(16383, value))
-                    events.append((at + (end - at) * s // steps, 1, bytes([0xE0 | ch, value & 127, value >> 7])))
+                    events.append(
+                        (
+                            at + (end - at) * s // steps,
+                            1,
+                            bytes([0xE0 | ch, value & 127, value >> 7]),
+                        )
+                    )
                 events.append((end, 1, bytes([0xE0 | ch, 0, 64])))
         tracks.append(_chunk(events))
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(b'MThd' + struct.pack('>IHHH', 6, 1, len(tracks), PPQ) + b''.join(tracks))
+    path.write_bytes(
+        b"MThd"
+        + struct.pack(">IHHH", 6, 1, len(tracks), PPQ)
+        + b"".join(tracks)
+    )
 
 
 def read_midi_notes(path: Path) -> list[tuple[str, int, int, int, int]]:
     """(トラック名, 音高, 開始tick, 終了tick, ベロシティ) の一覧。未終端ノートや構造の破損は例外。"""
     raw = Path(path).read_bytes()
-    if raw[:4] != b'MThd':
-        raise ValueError('MIDIヘッダーがありません')
-    _, fmt, ntracks, ppq = struct.unpack('>IHHH', raw[4:14])
+    if raw[:4] != b"MThd":
+        raise ValueError("MIDIヘッダーがありません")
+    _, fmt, ntracks, ppq = struct.unpack(">IHHH", raw[4:14])
     if fmt != 1 or ppq != PPQ:
-        raise ValueError(f'Type 1 / {PPQ} PPQ ではありません（type={fmt}, ppq={ppq}）')
+        raise ValueError(
+            f"Type 1 / {PPQ} PPQ ではありません（type={fmt}, ppq={ppq}）"
+        )
     pos, notes = 14, []
     for _ in range(ntracks):
-        if raw[pos:pos + 4] != b'MTrk':
-            raise ValueError('MTrk チャンクが見つかりません')
-        size = int.from_bytes(raw[pos + 4:pos + 8], 'big')
+        if raw[pos : pos + 4] != b"MTrk":
+            raise ValueError("MTrk チャンクが見つかりません")
+        size = int.from_bytes(raw[pos + 4 : pos + 8], "big")
         pos += 8
-        end, at, status, name, active, ended = pos + size, 0, 0, '', {}, False
+        end, at, status, name, active, ended = pos + size, 0, 0, "", {}, False
 
         def vlq() -> int:
             nonlocal pos
@@ -117,7 +139,7 @@ def read_midi_notes(path: Path) -> list[tuple[str, int, int, int, int]]:
                 pos += 1
                 length = vlq()
                 if kind == 0x03:
-                    name = raw[pos:pos + length].decode('utf-8', 'replace')
+                    name = raw[pos : pos + length].decode("utf-8", "replace")
                 if kind == 0x2F:
                     ended = True
                 pos += length
@@ -126,7 +148,7 @@ def read_midi_notes(path: Path) -> list[tuple[str, int, int, int, int]]:
             else:
                 kind = status & 0xF0
                 size_ = 1 if kind in (0xC0, 0xD0) else 2
-                data = raw[pos:pos + size_]
+                data = raw[pos : pos + size_]
                 pos += size_
                 if kind in (0x80, 0x90):
                     key = (status & 15, data[0])
@@ -134,17 +156,22 @@ def read_midi_notes(path: Path) -> list[tuple[str, int, int, int, int]]:
                         active.setdefault(key, []).append((at, data[1]))
                     else:
                         if not active.get(key):
-                            raise ValueError(f'対応する note-on のない note-off（{name}）')
+                            raise ValueError(
+                                f"対応する note-on のない note-off（{name}）"
+                            )
                         start, vel = active[key].pop(0)
                         notes.append((name, data[0], start, at, vel))
         if any(active.values()):
-            raise ValueError(f'鳴りっぱなしのノートがあります（{name}）')
+            raise ValueError(f"鳴りっぱなしのノートがあります（{name}）")
         if not ended or pos != end:
-            raise ValueError(f'トラック終端が不正です（{name}）')
+            raise ValueError(f"トラック終端が不正です（{name}）")
     if pos != len(raw):
-        raise ValueError('ファイル末尾に余分なデータがあります')
+        raise ValueError("ファイル末尾に余分なデータがあります")
     return sorted(notes)
 
 
 def expected_notes(cue: Cue) -> list[tuple[str, int, int, int, int]]:
-    return sorted((n.part, n.pitch, *note_ticks(n.start, n.dur), n.vel) for n in cue.notes)
+    return sorted(
+        (n.part, n.pitch, *note_ticks(n.start, n.dur), n.vel)
+        for n in cue.notes
+    )

@@ -9,7 +9,7 @@ AIエージェント（**Codex** / **Claude Code**）に BGM や効果音を作�
 ```
 
 - 作曲はエージェントが **音符データ（Python）** として書くため、パート別の MIDI をそのまま REAPER で編集できます。
-- 作曲の設計には [music-composition-skills](https://github.com/jtydhr88/music-composition-skills)（ARR-SPEC ワークフロー）を利用することを想定しています。
+- 作曲の設計には [music-composition-skills](https://github.com/jtydhr88/music-composition-skills)（ARR-SPEC ワークフロー）を利用を想定しています。Agentsのスキルとして追加した上でご使用ください。
 - 試聴カタログは作曲した回（バッチ）ごとにタブで切り替わり、書き出すたびに自動で更新されます。
 - REAPER 版は標準の ReaSynth で作ります（追加の音源は不要）。Magical 8bit Plug 2 や MASSIVE 用の設定も同梱しており、試聴カタログで保存するときに音源を選べます。全曲を**サブプロジェクト**として並べた「全曲まとめ」プロジェクトも作ります。
 

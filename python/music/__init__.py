@@ -2,6 +2,7 @@
 
 compose.py からは `from music import Cue, Note, Scale` で使う。
 """
+
 from music.score import MODES, VOICES, Cue, Note, Scale, ScoreError
 
-__all__ = ['Cue', 'Note', 'Scale', 'ScoreError', 'MODES', 'VOICES']
+__all__ = ["MODES", "VOICES", "Cue", "Note", "Scale", "ScoreError"]
