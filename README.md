@@ -58,17 +58,6 @@ python python/cli.py doctor      # Python・REAPER・音源の確認
 
 スキルの本体は `.agents/skills/` の1か所だけです。Claude Code は `.claude/skills/` しか読まないため、そこには説明文と「本体を読む」案内だけを置いています（`python python/cli.py sync-skills` で本体から作り直せます）。
 
-作曲の設計に music-composition-skills を使う場合は、別途導入してください（任意）。
-
-```text
-# Claude Code
-/plugin marketplace add jtydhr88/music-composition-skills
-/plugin install music-composition@music-composition-skills
-
-# Codex
-music-composition-skills の各スキルを ~/.agents/skills/ に配置（同リポジトリの README を参照）
-```
-
 ## 使い方
 
 ### 1. 作曲を頼む
