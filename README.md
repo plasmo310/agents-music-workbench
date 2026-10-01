@@ -1,6 +1,6 @@
-# agents-music-creator
+# agents-music-workbench
 
-AIエージェント（**Codex** / **Claude Code**）に BGM や効果音を作曲させてブラウザで聴き比べ、選んだ曲を、**音色設定済みの REAPER プロジェクト**にするためのツール一式です。曲のプロトタイプ作成や、アイデア出しに活用できます。
+AIエージェント（**Codex** / **Claude Code**）に **BGM や効果音を作曲させた曲をブラウザで聴き比べ**、**選んだ曲を音色設定済みの REAPER プロジェクト**にするためのツール一式です。曲のプロトタイプ作成や、アイデア出しに活用できます。
 
 ```
  ① 作曲を依頼               ② 試聴して選ぶ                        ③ プロジェクト生成を依頼
@@ -28,8 +28,8 @@ AIエージェント（**Codex** / **Claude Code**）に BGM や効果音を作�
 ## セットアップ
 
 ```bash
-git clone https://github.com/<you>/agents-music-creator.git
-cd agents-music-creator
+git clone https://github.com/<you>/agents-music-workbench.git
+cd agents-music-workbench
 pip install -r requirements.txt
 python python/cli.py doctor      # Python・REAPER・音源の確認
 ```
