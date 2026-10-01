@@ -11,18 +11,16 @@ AIエージェント（**Codex** / **Claude Code**）に BGM や効果音を作�
 - 作曲はエージェントが **音符データ（Python）** として書くため、パート別の MIDI をそのまま REAPER で編集できます。
 - 作曲の設計には [music-composition-skills](https://github.com/jtydhr88/music-composition-skills)（ARR-SPEC ワークフロー）を利用を想定しています。Agentsのスキルとして追加した上でご使用ください。
 - 試聴カタログは作曲した回（バッチ）ごとにタブで切り替わり、書き出すたびに自動で更新されます。
-- REAPER 版は標準の ReaSynth で作ります（追加の音源は不要）。Magical 8bit Plug 2 や MASSIVE 用の設定も同梱しており、試聴カタログで保存するときに音源を選べます。全曲を**サブプロジェクト**として並べた「全曲まとめ」プロジェクトも作ります。
+- REAPER 版は標準の ReaSynth で作ります（追加の音源は不要）。Magical 8bit Plug 2 や MASSIVE 用の設定も同梱しています。
 
 ## 動作環境
 
-| ソフトウェア                                                          | 用途                                       | 備考                                               |
-| --------------------------------------------------------------------- | ------------------------------------------ | -------------------------------------------------- |
-| Python 3.10 以上 ＋ numpy                                             | 作曲データの書き出し・カタログ・REAPER連携 | `pip install -r requirements.txt`                  |
-| Codex または Claude Code                                              | 作曲・プロジェクト生成を頼む相手           |                                                    |
-| Chrome / Edge などのブラウザ                                          | 試聴カタログ                               | Chrome / Edge ならリストを直接フォルダへ保存できる |
-| [REAPER](https://www.reaper.fm/)                                      | プロジェクト生成                           | 7.x で確認。既定の音源 ReaSynth は REAPER に付属   |
-| [Magical 8bit Plug 2](https://ymck.net/app/magical-8bit-plug)（任意） | 8bit風の音源                               | VST3プラグイン。                                   |
-| Native Instruments MASSIVE（任意）                                    | シンセ音源                                 | VST3プラグイン。MASSIVE X ではありません           |
+| ソフトウェア                     | 用途                                       | 備考                                               |
+| -------------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| Python 3.10 以上 ＋ numpy        | 作曲データの書き出し・カタログ・REAPER連携 | `pip install -r requirements.txt`                  |
+| Codex または Claude Code         | 作曲・プロジェクト生成を頼む相手           |                                                    |
+| Chrome / Edge などのブラウザ     | 試聴カタログ                               | Chrome / Edge ならリストを直接フォルダへ保存できる |
+| [REAPER](https://www.reaper.fm/) | プロジェクト生成                           | 7.x で確認。既定の音源 ReaSynth は REAPER に付属   |
 
 任意の音源は、入れておくとカタログやコマンドで選べるようになります。
 動作確認は Windows 11 ＋ REAPER 7.80 で行っています。macOS / Linux は未確認です。
@@ -217,7 +215,3 @@ data/                     作業データ（中身は Git の管理対象外）
 - **MASSIVE で滑音（グライド）の幅が違う**：MASSIVE はピッチベンド幅をホストから設定できません。音源側で合わせてください（`delivery.json` の warnings に記録されます）。
 - **品質の保証**：自動検査（無音・クリップ・ループの継ぎ目・MIDIの一致・プロジェクトの再読み込み）は行いますが、音楽的な品質や既存曲との類似がないことは保証しません。必ず耳で確認してください。
 - 生成した曲の利用にあたっては、ご自身の責任で確認してください。
-
-## ライセンス
-
-MIT License（[LICENSE](LICENSE)）。music-composition-skills・各音源・REAPER はそれぞれのライセンスに従います。音源本体やライセンスファイルはこのリポジトリに含まれません。
