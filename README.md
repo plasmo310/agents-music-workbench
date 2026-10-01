@@ -13,6 +13,8 @@ AIエージェント（**Codex** / **Claude Code**）に **BGM や効果音を�
 - 試聴カタログは作曲した回（バッチ）ごとにタブで切り替わり、書き出すたびに自動で更新されます。
 - REAPER 版は標準の ReaSynth で作ります（追加の音源は不要）。Magical 8bit Plug 2 や MASSIVE 用の設定も同梱しています。
 
+<img src="docs/readme/01_tool_ui.png" width="800" style="max-width: 100%; height: auto;" alt="音素材カタログ画面">
+
 ## 動作環境
 
 | ソフトウェア                     | 用途                                       | 備考                                               |
@@ -83,16 +85,26 @@ music-composition-skills の各スキルを ~/.agents/skills/ に配置（同リ
 data/library/index.html   ← ブラウザで直接開く（サーバー不要）
 ```
 
+<img src="docs/readme/01_tool_ui.png" width="600" style="max-width: 100%; height: auto;" alt="音素材カタログ画面">
+
 ### 2. 試聴して選ぶ
 
 - 上部のタブで**作曲した回（バッチ）**を切り替えます。タブを開くと、依頼内容や設計メモも確認できます。
+
+<img src="docs/readme/04_manual_tab.png" width="400" style="max-width: 100%; height: auto;" alt="音素材カタログのバッチタブ">
+
 - 気に入った曲の **「☆ リストに追加」** を押します。★は全バッチ共通で、ブラウザに保存されます。
   - 「音符データなし」と表示される曲は音声だけの素材のため、REAPER プロジェクトにはできません（試聴・WAV保存のみ）。
+
+<img src="docs/readme/05_manual_favorite.png" width="600" style="max-width: 100%; height: auto;" alt="曲をプロジェクト生成リストに追加する操作">
+
 - 画面下の保存ボタンを押します。
   - **「全タブの★を保存」**：すべてのバッチで★を付けた曲をまとめて保存します。
   - **「このタブの★を保存」**：いま開いているバッチのタブで★を付けた曲だけを保存します（他のタブの★は残ったまま、リストには入りません）。
   - 初回だけフォルダ選択が開くので、このリポジトリの **`data/project-lists`** フォルダを選びます。以降はワンクリックで `data/project-lists/latest.json` に保存されます。
   - 直接保存できないブラウザでは `project-list-latest.json` がダウンロードされます（ダウンロードフォルダも自動で探します）。
+
+<img src="docs/readme/06_manual_generate.png" width="600" style="max-width: 100%; height: auto;" alt="選択した曲からプロジェクト生成リストを保存する操作">
 
 ### 3. REAPER プロジェクトを生成する
 
@@ -117,7 +129,11 @@ REAPER が起動していれば、そのウィンドウに新しいタブを開�
 | `<曲>/<音源>/sound_settings.tsv`  | 設定した音源パラメーターの記録                                                                                                                                                                                                 |
 | `README.md` / `delivery.json`     | 成果物の一覧と検証結果                                                                                                                                                                                                         |
 
+<img src="docs/readme/02_reaper_root_project.png" width="800" style="max-width: 100%; height: auto;" alt="全曲をまとめた REAPER プロジェクト">
+
 ループ曲は3周並べ、中央の1周が再生・書き出し範囲です（前後は余韻の確認用）。SE には 0.35 秒の余韻枠があります。
+
+<img src="docs/readme/03_reaper_unit_project.png" width="800" style="max-width: 100%; height: auto;" alt="曲ごとの編集用 REAPER プロジェクト">
 
 ### エージェントなしで試す
 
