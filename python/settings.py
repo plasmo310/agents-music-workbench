@@ -38,6 +38,11 @@ DEFAULTS = {
 
 
 def load() -> dict:
+    """Load the effective application configuration.
+
+    Returns:
+        dict: Default settings merged with the optional ``config.json`` file.
+    """
     cfg = dict(DEFAULTS)
     if CONFIG_FILE.is_file():
         cfg.update(json.loads(CONFIG_FILE.read_text(encoding="utf-8-sig")))
@@ -45,6 +50,14 @@ def load() -> dict:
 
 
 def downloads_dir(cfg: dict) -> Path:
+    """Resolve the directory used for browser-downloaded project lists.
+
+    Args:
+        cfg: Effective application configuration.
+
+    Returns:
+        Path: Configured download directory, or the user's Downloads directory.
+    """
     if cfg.get("downloads_dir"):
         return Path(
             os.path.expandvars(os.path.expanduser(cfg["downloads_dir"]))
@@ -53,6 +66,11 @@ def downloads_dir(cfg: dict) -> Path:
 
 
 def reaper_candidates() -> list[Path]:
+    """Return platform-specific default locations for the REAPER executable.
+
+    Returns:
+        list[Path]: Candidate executable paths in lookup order.
+    """
     if sys.platform == "win32":
         bases = [
             os.environ.get("ProgramFiles", r"C:\Program Files"),
@@ -76,6 +94,14 @@ def reaper_candidates() -> list[Path]:
 
 
 def reaper_exe(cfg: dict) -> Path | None:
+    """Find the configured or default REAPER executable.
+
+    Args:
+        cfg: Effective application configuration.
+
+    Returns:
+        Path | None: An existing executable path, or ``None`` when unavailable.
+    """
     if cfg.get("reaper_path"):
         p = Path(os.path.expandvars(os.path.expanduser(cfg["reaper_path"])))
         return p if p.is_file() else None
@@ -83,6 +109,11 @@ def reaper_exe(cfg: dict) -> Path | None:
 
 
 def reaper_resource_dir() -> Path:
+    """Return REAPER's per-user resource directory for this platform.
+
+    Returns:
+        Path: Directory that contains REAPER configuration and plugin indexes.
+    """
     if sys.platform == "win32":
         return (
             Path(os.environ.get("APPDATA", Path.home() / "AppData/Roaming"))
@@ -94,7 +125,14 @@ def reaper_resource_dir() -> Path:
 
 
 def rel(path: Path) -> str:
-    """リポジトリ基準の表示用パス。"""
+    """Format a path relative to the repository when possible.
+
+    Args:
+        path: Path to display.
+
+    Returns:
+        str: POSIX-style repository-relative path, or the original path string.
+    """
     try:
         return Path(path).resolve().relative_to(ROOT).as_posix()
     except ValueError:

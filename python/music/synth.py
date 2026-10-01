@@ -69,6 +69,16 @@ def _phase(f: float, t: np.ndarray, d: float, glide: float) -> np.ndarray:
 
 
 def voice_wave(n: Note, d: float, rng: np.random.Generator) -> np.ndarray:
+    """Synthesize one preview voice waveform.
+
+    Args:
+        n: Note that supplies pitch, voice, and glide.
+        d: Rendered duration in seconds.
+        rng: Random generator for noise-based voices.
+
+    Returns:
+        np.ndarray: Mono float32 waveform.
+    """
     """1音分の波形（エンベロープ込み、振幅は音色基準）。d は秒。"""
     v = n.voice
     t = np.arange(max(2, round(d * SR))) / SR
@@ -169,7 +179,14 @@ def voice_wave(n: Note, d: float, rng: np.random.Generator) -> np.ndarray:
 
 
 def render_cue(cue: Cue) -> np.ndarray:
-    """Cue をステレオ float32 配列に合成して正規化する。"""
+    """Render and normalize a cue as stereo preview audio.
+
+    Args:
+        cue: Validated cue to synthesize.
+
+    Returns:
+        np.ndarray: Stereo float32 samples in the range -1 through 1.
+    """
     n_samples = max(2, round(cue.duration * SR))
     buf = np.zeros((n_samples, 2), np.float32)
     rng = np.random.default_rng(zlib.crc32(cue.id.encode()))
@@ -214,7 +231,15 @@ def render_cue(cue: Cue) -> np.ndarray:
 
 
 def write_wav(path: Path, buf: np.ndarray) -> dict:
-    """16-bit PCM で書き出し、検査用の統計を返す。"""
+    """Write stereo audio as 16-bit PCM WAV and calculate statistics.
+
+    Args:
+        path: Destination WAV path.
+        buf: Stereo floating-point sample array.
+
+    Returns:
+        dict: Peak and RMS levels plus a PCM SHA-256 hash.
+    """
     pcm = np.round(np.clip(buf, -1, 1) * 32767).astype("<i2")
     path.parent.mkdir(parents=True, exist_ok=True)
     with wave.open(str(path), "wb") as w:
@@ -235,7 +260,17 @@ def write_wav(path: Path, buf: np.ndarray) -> dict:
 
 
 def read_wav(path: Path) -> tuple[np.ndarray, int]:
-    """16/24/32-bit PCM と 32-bit float WAV を読み、(-1..1 の配列, サンプルレート) を返す。"""
+    """Read supported PCM or floating-point WAV audio.
+
+    Args:
+        path: WAV file to decode.
+
+    Returns:
+        tuple[np.ndarray, int]: Normalized sample array and sample rate.
+
+    Raises:
+        ValueError: If the file is not a supported WAV format.
+    """
     raw = Path(path).read_bytes()
     if raw[:4] != b"RIFF" or raw[8:12] != b"WAVE":
         raise ValueError(f"WAVではありません: {path}")

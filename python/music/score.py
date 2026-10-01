@@ -97,10 +97,19 @@ ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*$")
 
 
 class ScoreError(ValueError):
+    """Raised when score data violates the supported music-data contract."""
     pass
 
 
 def role_of(part: str) -> str:
+    """Infer an arrangement role from a part name.
+
+    Args:
+        part: User-defined part name.
+
+    Returns:
+        str: One of the supported roles, defaulting to ``lead``.
+    """
     low = part.lower()
     for role, pattern in ROLE_PATTERNS:
         if re.search(pattern, low):
@@ -109,6 +118,17 @@ def role_of(part: str) -> str:
 
 
 def parse_meter(meter: str) -> tuple[int, int]:
+    """Parse and validate a time-signature string.
+
+    Args:
+        meter: Signature such as ``"4/4"`` or ``"6/8"``.
+
+    Returns:
+        tuple[int, int]: Numerator and denominator.
+
+    Raises:
+        ScoreError: If the signature is not supported.
+    """
     m = re.fullmatch(r"\s*(\d+)\s*/\s*(\d+)\s*", meter or "")
     if not m:
         raise ScoreError(
@@ -121,13 +141,32 @@ def parse_meter(meter: str) -> tuple[int, int]:
 
 
 def beats_per_bar(meter: str) -> float:
+    """Calculate quarter-note beats in one bar.
+
+    Args:
+        meter: Valid time-signature string.
+
+    Returns:
+        float: Length of one bar in the score's beat unit.
+    """
     num, den = parse_meter(meter)
     return num * 4 / den
 
 
 @dataclass
 class Note:
-    """1つの音符。start / dur は拍単位。glide は音符の長さ全体で滑る半音数（例: -12 で1オクターブ下降）。"""
+    """Represent one note event in beat-based score time.
+
+    Args:
+        part: Part that owns the note.
+        start: Start time in quarter-note beats.
+        dur: Duration in quarter-note beats.
+        pitch: MIDI pitch from 0 through 127.
+        vel: MIDI velocity from 1 through 127.
+        voice: Preview-synth voice name.
+        pan: Stereo position from -1.0 (left) through 1.0 (right).
+        glide: Pitch bend in semitones over the note duration.
+    """
 
     part: str
     start: float
@@ -139,6 +178,11 @@ class Note:
     glide: float = 0.0
 
     def to_dict(self) -> dict:
+        """Serialize the note for JSON event data.
+
+        Returns:
+            dict: JSON-compatible note fields.
+        """
         return {
             "part": self.part,
             "start": self.start,
@@ -153,14 +197,24 @@ class Note:
 
 @dataclass
 class Cue:
-    """1つの曲・効果音。
+    """Represent one music cue or sound effect.
 
-    id        : バッチ内で一意（英小文字・数字・_ -）
-    category  : BATCH['categories'] の id
-    length    : 拍単位の長さ。ループ曲は必須（小節境界に揃える）。SEは省略すると最後の音の終わり＋余韻。
-    bpm       : None ならテンポ未定義のSE（作業用120 BPM）
-    mix       : パート名 -> dB。省略時は役割ごとの既定値
-    roles     : パート名 -> 役割（lead/bass/pad/arp/drum）。省略時はパート名から推定
+    Args:
+        id: Unique lowercase identifier within a batch.
+        title: Display title.
+        category: ID from ``BATCH['categories']``.
+        notes: Note events in beat-based time.
+        bpm: Tempo, or ``None`` for a one-shot effect.
+        meter: Time signature string.
+        length: Explicit length in beats; required for loops.
+        loop: Whether the cue must loop at the length boundary.
+        series: Optional catalog series name.
+        mood: Optional mood label.
+        style: Optional musical style label.
+        description: Optional catalog description.
+        tags: Optional searchable catalog tags.
+        mix: Per-part mix level in decibels.
+        roles: Per-part arrangement-role overrides.
     """
 
     id: str
@@ -182,25 +236,60 @@ class Cue:
     # ---- 時間の換算 -------------------------------------------------------
     @property
     def tempo(self) -> float:
+        """Return the cue tempo, using the working tempo for one-shot effects.
+
+        Returns:
+            float: Beats per minute used for time conversion.
+        """
         return float(self.bpm or WORKING_BPM)
 
     @property
     def beat_seconds(self) -> float:
+        """Return the duration of one score beat.
+
+        Returns:
+            float: Seconds per quarter-note beat.
+        """
         return 60.0 / self.tempo
 
     def seconds(self, beats: float) -> float:
+        """Convert score beats to seconds at this cue's tempo.
+
+        Args:
+            beats: Duration in quarter-note beats.
+
+        Returns:
+            float: Equivalent duration in seconds.
+        """
         return beats * self.beat_seconds
 
     def beats(self, seconds: float) -> float:
-        """秒 -> 拍。テンポ未定義のSEで秒単位の設計をしたい場合に使う。"""
+        """Convert seconds to score beats at this cue's tempo.
+
+        Args:
+            seconds: Duration in seconds.
+
+        Returns:
+            float: Equivalent duration in quarter-note beats.
+        """
         return seconds / self.beat_seconds
 
     @property
     def bar_beats(self) -> float:
+        """Return the score-beat length of one bar.
+
+        Returns:
+            float: Quarter-note beats per bar for the configured meter.
+        """
         return beats_per_bar(self.meter)
 
     @property
     def length_beats(self) -> float:
+        """Return the explicit or derived cue length in score beats.
+
+        Returns:
+            float: Configured loop length, or note end plus a short tail.
+        """
         if self.length is not None:
             return float(self.length)
         end = max((n.start + n.dur for n in self.notes), default=1.0)
@@ -208,17 +297,43 @@ class Cue:
 
     @property
     def duration(self) -> float:
+        """Return the cue duration in seconds.
+
+        Returns:
+            float: Converted ``length_beats`` at the effective tempo.
+        """
         return self.seconds(self.length_beats)
 
     # ---- パート情報 ---------------------------------------------------------
     @property
     def parts(self) -> list[str]:
+        """Return part names in first-note order.
+
+        Returns:
+            list[str]: Unique names of parts represented by the cue notes.
+        """
         return list(dict.fromkeys(n.part for n in self.notes))
 
     def role(self, part: str) -> str:
+        """Return the configured or inferred role for a part.
+
+        Args:
+            part: Part name to resolve.
+
+        Returns:
+            str: Configured role, or a role inferred from the part name.
+        """
         return self.roles.get(part) or role_of(part)
 
     def mix_db(self, part: str) -> float:
+        """Return the configured or default mix level for a part.
+
+        Args:
+            part: Part name to resolve.
+
+        Returns:
+            float: Mix gain in decibels.
+        """
         if part in self.mix:
             return float(self.mix[part])
         role = self.role(part)
@@ -231,7 +346,14 @@ class Cue:
 
     # ---- 検証・正規化 -------------------------------------------------------
     def validate(self) -> list[str]:
-        """不正な値は ScoreError。自動修正した内容を文字列のリストで返す。"""
+        """Validate the cue and normalize overlapping same-pitch notes.
+
+        Returns:
+            list[str]: Descriptions of automatic overlap corrections.
+
+        Raises:
+            ScoreError: If metadata or note values are invalid.
+        """
         where = f"[{self.id}]"
         if not ID_PATTERN.match(self.id or ""):
             raise ScoreError(
@@ -313,6 +435,11 @@ class Cue:
         return fixes
 
     def to_dict(self) -> dict:
+        """Serialize the cue and its notes for generated event data.
+
+        Returns:
+            dict: JSON-compatible cue data including derived timing and parts.
+        """
         return {
             "id": self.id,
             "title": self.title,
@@ -346,6 +473,14 @@ class Cue:
 
 
 def cue_from_dict(d: dict) -> Cue:
+    """Recreate a cue from serialized event data.
+
+    Args:
+        d: JSON-compatible cue dictionary.
+
+    Returns:
+        Cue: Reconstructed cue with notes, part roles, and mix settings.
+    """
     parts = d.get("parts") or []
     return Cue(
         id=d["id"],
@@ -367,7 +502,11 @@ def cue_from_dict(d: dict) -> Cue:
 
 
 class Scale:
-    """調と音階から音高を得る補助。degree は0始まりの音階度数（7以上・負値でオクターブをまたぐ）。
+    """Map scale degrees to MIDI pitches for a root and mode.
+
+    Args:
+        root: MIDI pitch used as the scale root.
+        mode: Name of a supported scale mode.
 
     >>> s = Scale(60, 'major')
     >>> s.note(0), s.note(4), s.note(7), s.note(-1)
@@ -384,6 +523,15 @@ class Scale:
         self.steps = MODES[mode]
 
     def note(self, degree: int, octave: int = 0) -> int:
+        """Return the MIDI pitch at a scale degree.
+
+        Args:
+            degree: Zero-based scale degree; values may cross octaves.
+            octave: Additional octave offset.
+
+        Returns:
+            int: MIDI pitch for the requested scale position.
+        """
         size = len(self.steps)
         return (
             self.root
@@ -394,5 +542,15 @@ class Scale:
     def chord(
         self, degree: int, size: int = 3, octave: int = 0, spread: int = 2
     ) -> list[int]:
-        """degree を根音に、音階上で spread 度ずつ積んだ和音（既定は三和音）。"""
+        """Build a chord by stacking scale intervals.
+
+        Args:
+            degree: Root scale degree.
+            size: Number of pitches to include.
+            octave: Additional octave offset.
+            spread: Scale-degree distance between chord tones.
+
+        Returns:
+            list[int]: MIDI pitches from the chord root upward.
+        """
         return [self.note(degree + spread * k, octave) for k in range(size)]

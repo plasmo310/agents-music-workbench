@@ -23,12 +23,28 @@ description: {description}
 
 
 def names() -> list[str]:
+    """List canonical skill names maintained by this repository.
+
+    Returns:
+        list[str]: Alphabetically ordered names with a canonical ``SKILL.md``.
+    """
     return sorted(
         p.name for p in settings.SKILLS.iterdir() if (p / "SKILL.md").is_file()
     )
 
 
 def stub(name: str) -> str:
+    """Create Claude Code's forwarding ``SKILL.md`` for one skill.
+
+    Args:
+        name: Canonical skill directory name.
+
+    Returns:
+        str: YAML-frontmatter forwarding document.
+
+    Raises:
+        ValueError: If the canonical skill has no description metadata.
+    """
     text = (settings.SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
     m = re.search(r"^description:\s*(.+)$", text, re.MULTILINE)
     if not m:
@@ -37,6 +53,11 @@ def stub(name: str) -> str:
 
 
 def sync() -> list[str]:
+    """Synchronize Claude Code forwarding stubs with canonical skills.
+
+    Returns:
+        list[str]: Human-readable paths created or removed during synchronization.
+    """
     out = []
     current = set(names())
     if settings.CLAUDE_SKILLS.is_dir():
@@ -55,7 +76,11 @@ def sync() -> list[str]:
 
 
 def differences() -> list[str]:
-    """Claude Code 用の案内が正本と食い違っていれば、その一覧（テスト用）。"""
+    """List Claude Code stubs that differ from their canonical forwarding text.
+
+    Returns:
+        list[str]: Repository-relative paths for missing or stale stubs.
+    """
     diffs = []
     for name in names():
         dest = settings.CLAUDE_SKILLS / name / "SKILL.md"

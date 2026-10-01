@@ -16,10 +16,19 @@ FORMAT = "music-project-list/1"
 
 
 class ProjectListError(RuntimeError):
+    """Raised when a saved project-generation list is missing or invalid."""
     pass
 
 
 def candidates(cfg: dict | None = None) -> list[Path]:
+    """Find saved project lists ordered from newest to oldest.
+
+    Args:
+        cfg: Optional effective configuration. Defaults are loaded when omitted.
+
+    Returns:
+        list[Path]: Existing list files from the repository and download directory.
+    """
     cfg = cfg or settings.load()
     found = list(settings.PROJECT_LISTS.glob("*.json"))
     downloads = settings.downloads_dir(cfg)
@@ -31,6 +40,17 @@ def candidates(cfg: dict | None = None) -> list[Path]:
 
 
 def latest(cfg: dict | None = None) -> Path:
+    """Return the newest saved project list.
+
+    Args:
+        cfg: Optional effective configuration.
+
+    Returns:
+        Path: Newest available project-list JSON file.
+
+    Raises:
+        ProjectListError: If no saved list can be found.
+    """
     found = candidates(cfg)
     if not found:
         raise ProjectListError(
@@ -41,6 +61,17 @@ def latest(cfg: dict | None = None) -> Path:
 
 
 def _items(data) -> list[dict]:
+    """Normalize supported project-list item representations.
+
+    Args:
+        data: Decoded project-list JSON value.
+
+    Returns:
+        list[dict]: Items with ``batch`` and ``id`` keys.
+
+    Raises:
+        ProjectListError: If an item cannot identify a batch and cue.
+    """
     if isinstance(data, dict):
         data = data.get("items", [])
     out = []
@@ -59,6 +90,17 @@ def _items(data) -> list[dict]:
 
 
 def load(path: str | Path | None = None) -> dict:
+    """Load and validate the selected cues in a project-generation list.
+
+    Args:
+        path: Explicit JSON file path. Uses the newest saved list when omitted.
+
+    Returns:
+        dict: Source metadata, validated cue entries, and chosen profiles.
+
+    Raises:
+        ProjectListError: If the file, list entries, or referenced cues are invalid.
+    """
     source = Path(path) if path else latest()
     if not source.is_file():
         raise ProjectListError(f"ファイルがありません: {source}")

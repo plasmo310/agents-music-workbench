@@ -24,7 +24,7 @@ AIエージェント（**Codex** / **Claude Code**）に **BGM や効果音を�
 | Chrome / Edge などのブラウザ     | 試聴カタログ                               | Chrome / Edge ならリストを直接フォルダへ保存できる |
 | [REAPER](https://www.reaper.fm/) | プロジェクト生成                           | 7.x で確認。既定の音源 ReaSynth は REAPER に付属   |
 
-任意の音源は、入れておくとカタログやコマンドで選べるようになります。
+任意の音源は、入れておくとカタログやコマンドで選べるようになります。<br>
 動作確認は Windows 11 ＋ REAPER 7.80 で行っています。macOS / Linux は未確認です。
 
 ## セットアップ
@@ -85,18 +85,18 @@ music-composition-skills の各スキルを ~/.agents/skills/ に配置（同リ
 data/library/index.html   ← ブラウザで直接開く（サーバー不要）
 ```
 
-<img src="docs/readme/01_tool_ui.png" width="600" style="max-width: 100%; height: auto;" alt="音素材カタログ画面">
+<img src="docs/readme/01_tool_ui.png" width="800" style="max-width: 100%; height: auto;" alt="音素材カタログ画面">
 
 ### 2. 試聴して選ぶ
 
 - 上部のタブで**作曲した回（バッチ）**を切り替えます。タブを開くと、依頼内容や設計メモも確認できます。
 
-<img src="docs/readme/04_manual_tab.png" width="400" style="max-width: 100%; height: auto;" alt="音素材カタログのバッチタブ">
+<img src="docs/readme/04_manual_tab.png" width="600" style="max-width: 100%; height: auto;" alt="音素材カタログのバッチタブ">
 
 - 気に入った曲の **「☆ リストに追加」** を押します。★は全バッチ共通で、ブラウザに保存されます。
   - 「音符データなし」と表示される曲は音声だけの素材のため、REAPER プロジェクトにはできません（試聴・WAV保存のみ）。
 
-<img src="docs/readme/05_manual_favorite.png" width="600" style="max-width: 100%; height: auto;" alt="曲をプロジェクト生成リストに追加する操作">
+<img src="docs/readme/05_manual_favorite.png" width="800" style="max-width: 100%; height: auto;" alt="曲をプロジェクト生成リストに追加する操作">
 
 - 画面下の保存ボタンを押します。
   - **「全タブの★を保存」**：すべてのバッチで★を付けた曲をまとめて保存します。
@@ -104,20 +104,21 @@ data/library/index.html   ← ブラウザで直接開く（サーバー不要�
   - 初回だけフォルダ選択が開くので、このリポジトリの **`data/project-lists`** フォルダを選びます。以降はワンクリックで `data/project-lists/latest.json` に保存されます。
   - 直接保存できないブラウザでは `project-list-latest.json` がダウンロードされます（ダウンロードフォルダも自動で探します）。
 
-<img src="docs/readme/06_manual_generate.png" width="600" style="max-width: 100%; height: auto;" alt="選択した曲からプロジェクト生成リストを保存する操作">
+<img src="docs/readme/06_manual_generate.png" width="800" style="max-width: 100%; height: auto;" alt="選択した曲からプロジェクト生成リストを保存する操作">
 
 ### 3. REAPER プロジェクトを生成する
 
-この工程にはエージェントは不要です。リポジトリの **`generate-projects.bat`** をダブルクリックします（macOS / Linux は `./generate-projects.sh`）。最新のプロジェクト生成リストを読み込み、リストで選んだ音源で REAPER プロジェクトを作ります。
+この工程にはエージェントは不要です。<br>
+リポジトリの **`generate-projects.bat`** をダブルクリックします（macOS / Linux は `./generate-projects.sh`）。最新のプロジェクト生成リストを読み込み、リストで選んだ音源で REAPER プロジェクトを作ります。
 
 - 中身は `python python/cli.py project all` の実行だけです。引数もそのまま渡せます（例：`generate-projects.bat --profiles reasynth magical8bit`）。
 - numpy の入った Python を自動で探します（`py -3` → `python` → `python3`）。見つからない場合は、環境変数 `MUSIC_PYTHON` に python の実行ファイルのパスを設定してください。
 - エージェントに「最新のリストでREAPERプロジェクトを生成して」と頼んでも同じものが作れます。失敗したときの原因調べや、音源プロファイルの調整を任せたい場合に便利です。
 
-REAPER が起動していれば、そのウィンドウに新しいタブを開いて作業し、終わると閉じます（開いているプロジェクトには触れません）。起動していなければ自動で起動します（起動時の案内ダイアログは閉じてください）。
+REAPER が起動していれば、そのウィンドウに新しいタブを開いて作業し、終わると閉じます。起動していなければ自動で起動します。<br>
 先頭の1曲で全音源の保存・読み込み・書き出しを確認してから、残りの曲へ進みます。
 
-結果は `data/projects/<日時-名前>/` にまとまり、試聴カタログの **「生成済みプロジェクト」** タブで音源版を聴き比べられます。
+結果は `data/projects/<日時-名前>/` にまとまり、試聴カタログの **「生成済みプロジェクト」** タブで音源版を聴き比べられます。<br>
 各プロジェクトの **「パスをコピー」** を押し、REAPER の「ファイル → プロジェクトを開く」のファイル名欄に貼り付けると開けます。
 
 | ファイル                          | 内容                                                                                                                                                                                                                           |
@@ -129,8 +130,11 @@ REAPER が起動していれば、そのウィンドウに新しいタブを開�
 | `<曲>/<音源>/sound_settings.tsv`  | 設定した音源パラメーターの記録                                                                                                                                                                                                 |
 | `README.md` / `delivery.json`     | 成果物の一覧と検証結果                                                                                                                                                                                                         |
 
+Overviewのプロジェクトは以下のようになっています。
+
 <img src="docs/readme/02_reaper_root_project.png" width="800" style="max-width: 100%; height: auto;" alt="全曲をまとめた REAPER プロジェクト">
 
+各曲個別のプロジェクトは以下です。<br>
 ループ曲は3周並べ、中央の1周が再生・書き出し範囲です（前後は余韻の確認用）。SE には 0.35 秒の余韻枠があります。
 
 <img src="docs/readme/03_reaper_unit_project.png" width="800" style="max-width: 100%; height: auto;" alt="曲ごとの編集用 REAPER プロジェクト">

@@ -16,10 +16,22 @@ import settings
 
 
 class PipelineError(RuntimeError):
+    """Raised when REAPER automation cannot start, finish, or validate."""
     pass
 
 
 def to_lua(value) -> str:
+    """Serialize supported Python values as Lua literals.
+
+    Args:
+        value: Scalar, path, sequence, mapping, or ``None`` to serialize.
+
+    Returns:
+        str: Lua expression representing ``value``.
+
+    Raises:
+        TypeError: If the value type has no supported Lua representation.
+    """
     if value is None:
         return "nil"
     if isinstance(value, bool):
@@ -46,7 +58,11 @@ def to_lua(value) -> str:
 
 
 def is_running() -> bool:
-    """REAPER が起動しているか。確認できない環境では起動中とみなす。"""
+    """Check whether REAPER is running, conservatively treating probe failures as running.
+
+    Returns:
+        bool: Whether REAPER appears to be running or cannot be queried safely.
+    """
     try:
         if sys.platform == "win32":
             out = subprocess.run(
@@ -78,11 +94,16 @@ def is_running() -> bool:
 def ensure_ready(
     exe: Path, logs: Path, log=print, timeout: float = 600
 ) -> None:
-    """REAPER が起動していなければ起動し、スクリプトを受け付けられるまで待つ。
+    """Start REAPER when needed and wait until it accepts automation scripts.
 
-    起動と同時にスクリプトを渡すと、起動時のプロジェクト読み込みと作業タブの作成が重なり、
-    作業中のトラックが失われる。そこで REAPER だけを起動し、確認用の小さなスクリプトが
-    実行されたことを確かめてから本来のスクリプトを渡す。
+    Args:
+        exe: REAPER executable path.
+        logs: Directory for temporary readiness script and marker files.
+        log: Callback used for user-visible progress messages.
+        timeout: Maximum seconds to wait for readiness.
+
+    Raises:
+        PipelineError: If REAPER does not become ready before the timeout.
     """
     if is_running():
         return
@@ -121,6 +142,15 @@ def ensure_ready(
 
 
 def write_lua_data(path: Path, value) -> Path:
+    """Write a Lua file that returns serialized job data.
+
+    Args:
+        path: Output Lua file path.
+        value: Supported Python value to serialize.
+
+    Returns:
+        Path: The written path.
+    """
     path.write_text("return " + to_lua(value) + "\n", encoding="utf-8")
     return path
 
@@ -134,7 +164,23 @@ def run(
     log=print,
     **args,
 ) -> list[str]:
-    """lua/<script> を実行し、ログの行を返す。ERROR やタイムアウトは PipelineError。"""
+    """Run a REAPER Lua stage and wait for its completion log.
+
+    Args:
+        exe: REAPER executable path.
+        script: Lua script name or absolute path.
+        job_dir: Generation job directory.
+        stage: Unique stage label used for generated log names.
+        timeout: Maximum seconds to wait for completion.
+        log: Callback used for user-visible progress messages.
+        **args: Additional values exposed to the Lua script as job variables.
+
+    Returns:
+        list[str]: Complete lines from the stage log.
+
+    Raises:
+        PipelineError: If REAPER reports an error or the stage times out.
+    """
     logs = job_dir / "logs"
     logs.mkdir(exist_ok=True)
     log_file = logs / f"{stage}.log"

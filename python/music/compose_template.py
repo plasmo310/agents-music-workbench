@@ -21,6 +21,11 @@ BATCH = {
 
 
 def loop_bgm() -> Cue:
+    """Create an example loopable background-music cue.
+
+    Returns:
+        Cue: Eight-bar major-key template BGM.
+    """
     key = Scale(60, "major")
     bpm, bars = 112, 8
     notes: list[Note] = []
@@ -72,6 +77,11 @@ def loop_bgm() -> Cue:
 
 
 def one_shot_se() -> Cue:
+    """Create an example rising one-shot sound effect.
+
+    Returns:
+        Cue: Short arpeggiated template effect.
+    """
     cue = Cue(
         id="se_01",
         title="雛形の上昇SE",
@@ -94,4 +104,9 @@ def one_shot_se() -> Cue:
 
 
 def cues() -> list[Cue]:
+    """Return the cues rendered from this composition template.
+
+    Returns:
+        list[Cue]: Example BGM and sound-effect cues.
+    """
     return [loop_bgm(), one_shot_se()]

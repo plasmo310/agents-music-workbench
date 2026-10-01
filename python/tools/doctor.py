@@ -10,6 +10,11 @@ from reaper import profiles as profile_list
 
 
 def run() -> int:
+    """Check Python, audio dependencies, REAPER, and selected profiles.
+
+    Returns:
+        int: ``0`` when required checks pass; otherwise ``1``.
+    """
     ok = True
     mark = lambda good: "✓" if good else "✗"
     cfg = settings.load()

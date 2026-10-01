@@ -12,6 +12,7 @@ import settings
 
 
 class ProfileError(ValueError):
+    """Raised when requested REAPER instrument profiles are unavailable or empty."""
     pass
 
 
@@ -22,19 +23,44 @@ def _field(name: str, key: str) -> str | None:
 
 
 def names() -> list[str]:
+    """List available REAPER instrument-profile IDs.
+
+    Returns:
+        list[str]: Alphabetically ordered Lua profile basenames.
+    """
     return sorted(p.stem for p in settings.PROFILES_DIR.glob("*.lua"))
 
 
 def label(name: str) -> str:
+    """Return a profile's human-readable label.
+
+    Args:
+        name: Profile ID.
+
+    Returns:
+        str: Label from the Lua profile, or the ID when unspecified.
+    """
     return _field(name, "label") or name
 
 
 def plugin(name: str) -> str | None:
+    """Return the plugin descriptor declared by a profile.
+
+    Args:
+        name: Profile ID.
+
+    Returns:
+        str | None: Plugin descriptor, if declared.
+    """
     return _field(name, "plugin")
 
 
 def available() -> list[dict]:
-    """既定の音源を先頭にした一覧（カタログの選択肢に使う）。"""
+    """List profiles with labels and default-selection status.
+
+    Returns:
+        list[dict]: Catalog-ready profile records, with defaults first.
+    """
     default = settings.load()["profiles"]
     order = sorted(
         names(),
@@ -56,6 +82,17 @@ def available() -> list[dict]:
 
 
 def check(selected: list[str]) -> list[str]:
+    """Validate and de-duplicate a profile selection.
+
+    Args:
+        selected: Requested profile IDs.
+
+    Returns:
+        list[str]: Unique valid profile IDs in first-seen order.
+
+    Raises:
+        ProfileError: If no profile is selected or a profile is unknown.
+    """
     selected = list(dict.fromkeys(selected))
     unknown = [n for n in selected if n not in names()]
     if unknown:
@@ -70,7 +107,15 @@ def check(selected: list[str]) -> list[str]:
 def resolve(
     cli: list[str] | None, from_list: list[str] | None
 ) -> tuple[list[str], str]:
-    """(使う音源, どこで指定されたか)。"""
+    """Resolve profile selection according to documented precedence.
+
+    Args:
+        cli: Profiles supplied by the command line.
+        from_list: Profiles stored in the saved project list.
+
+    Returns:
+        tuple[list[str], str]: Valid profiles and a human-readable source label.
+    """
     if cli:
         return check(cli), "コマンドの --profiles"
     if from_list:

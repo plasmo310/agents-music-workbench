@@ -28,10 +28,22 @@ GENERATED = (
 
 
 class BatchError(RuntimeError):
+    """Raised when a composition batch cannot be created, loaded, or rendered."""
     pass
 
 
 def batch_dir(batch_id: str) -> Path:
+    """Resolve and validate a composition batch directory.
+
+    Args:
+        batch_id: Alphanumeric, underscore, and hyphen batch identifier.
+
+    Returns:
+        Path: Batch directory under the library root.
+
+    Raises:
+        BatchError: If the identifier is invalid.
+    """
     if not BATCH_ID.match(batch_id):
         raise BatchError(
             f"バッチIDは英数字・_・- で指定してください: {batch_id!r}"
@@ -42,7 +54,19 @@ def batch_dir(batch_id: str) -> Path:
 def new_batch(
     name: str, today: dt.date | None = None, example: bool = False
 ) -> Path:
-    """テンプレート（example=True なら見本）から compose.py を作る。IDの先頭に日付を付ける。"""
+    """Create a dated composition batch from a template.
+
+    Args:
+        name: Batch name, with or without a leading ``YYYYMMDD-`` date.
+        today: Date to use when ``name`` has no date prefix.
+        example: Use the example composition instead of the blank template.
+
+    Returns:
+        Path: Created ``compose.py`` path.
+
+    Raises:
+        BatchError: If a batch with the generated ID already exists.
+    """
     today = today or dt.datetime.now().astimezone().date()
     batch_id = name if re.match(r"^\d{8}-", name) else f"{today:%Y%m%d}-{name}"
     folder = batch_dir(batch_id)
@@ -60,6 +84,17 @@ def new_batch(
 
 
 def load_compose(folder: Path):
+    """Import a batch's composition module and obtain its metadata and cues.
+
+    Args:
+        folder: Composition batch directory.
+
+    Returns:
+        tuple[dict, list[Cue]]: Batch metadata and generated cue objects.
+
+    Raises:
+        BatchError: If the composition module or its public contract is invalid.
+    """
     path = folder / "compose.py"
     if not path.is_file():
         raise BatchError(f"compose.py がありません: {settings.rel(path)}")
@@ -97,6 +132,20 @@ def _fingerprint(cue: Cue) -> tuple:
 
 
 def render(batch_id: str, force: bool = False, log=print) -> dict:
+    """Render a composition batch into audio, MIDI, and catalog metadata.
+
+    Args:
+        batch_id: Existing composition batch identifier.
+        force: Replace a previously rendered batch when ``True``.
+        log: Callback used for per-cue progress messages.
+
+    Returns:
+        dict: Verification report for rendered audio and MIDI outputs.
+
+    Raises:
+        BatchError: If a rendered batch would be overwritten without ``force``.
+        ScoreError: If a cue fails validation.
+    """
     folder = batch_dir(batch_id)
     meta, cues = load_compose(folder)
     if (folder / "manifest.json").exists() and not force:
@@ -237,10 +286,20 @@ def render(batch_id: str, force: bool = False, log=print) -> dict:
 def import_audio(
     batch_id: str, meta: dict, entries: list[dict], log=print
 ) -> dict:
-    """既存の音声（と音符データ）を、書き出し済みバッチと同じ形式で library に登録する。
+    """Register existing audio in the library without resynthesizing it.
 
-    entries: [{'cue': Cue, 'audio': Path}]。音符データがない音声は cue.notes を空にする（has_score=False、
-    カタログでは試聴のみでプロジェクト生成リストには入れられない）。音声は再合成せずにコピーする。
+    Args:
+        batch_id: New library batch identifier.
+        meta: Batch metadata, including title, categories, and creation time.
+        entries: Dictionaries containing a ``Cue`` under ``cue`` and source audio
+            path under ``audio``. Empty cue notes mark audio-only material.
+        log: Callback used for final progress output.
+
+    Returns:
+        dict: Import verification report and audio-only cue IDs.
+
+    Raises:
+        BatchError: If the batch was already registered.
     """
     folder = batch_dir(batch_id)
     if (folder / "manifest.json").exists():
@@ -352,6 +411,11 @@ def import_audio(
 
 
 def list_batches() -> list[dict]:
+    """List rendered library batches with their manifest entries.
+
+    Returns:
+        list[dict]: Rendered batch metadata, newest first.
+    """
     out = []
     for f in sorted(settings.LIBRARY.glob("*/batch.json")):
         info = json.loads(f.read_text(encoding="utf-8"))
@@ -363,6 +427,17 @@ def list_batches() -> list[dict]:
 
 
 def load_events(batch_id: str) -> dict[str, dict]:
+    """Load serialized cue events keyed by cue ID.
+
+    Args:
+        batch_id: Rendered batch identifier.
+
+    Returns:
+        dict[str, dict]: Event dictionaries indexed by cue ID.
+
+    Raises:
+        BatchError: If the batch has no rendered event file.
+    """
     path = batch_dir(batch_id) / "events.json"
     if not path.exists():
         raise BatchError(

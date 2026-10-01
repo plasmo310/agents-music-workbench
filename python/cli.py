@@ -17,6 +17,11 @@ import settings
 
 
 def cmd_new_batch(args):
+    """Handle the ``new-batch`` command.
+
+    Args:
+        args: Parsed arguments containing ``name`` and ``example``.
+    """
     from music import batch
 
     path = batch.new_batch(args.name, example=args.example)
@@ -27,6 +32,14 @@ def cmd_new_batch(args):
 
 
 def cmd_render(args):
+    """Handle the ``render`` command.
+
+    Args:
+        args: Parsed arguments containing batch, force, and catalog options.
+
+    Returns:
+        int | None: Nonzero when rendering verification fails.
+    """
     from music import batch
 
     print(f"書き出し中: {args.batch}")
@@ -51,12 +64,22 @@ def cmd_render(args):
 
 
 def cmd_catalog(args):
+    """Handle the ``catalog`` command.
+
+    Args:
+        args: Parsed command arguments (currently unused).
+    """
     from catalog import build as catalog
 
     print(f"カタログ更新: {settings.rel(catalog.build())}")
 
 
 def cmd_project_list(args):
+    """Handle the ``project-list`` command.
+
+    Args:
+        args: Parsed arguments containing an optional list file path.
+    """
     from catalog import project_list
 
     sel = project_list.load(args.file)
@@ -71,6 +94,14 @@ def cmd_project_list(args):
 
 
 def cmd_project(args):
+    """Handle project preparation and REAPER build commands.
+
+    Args:
+        args: Parsed project action, selection, profile, and build options.
+
+    Returns:
+        int | None: REAPER build result when a build stage is run.
+    """
     from reaper import pipeline
 
     cfg = settings.load()
@@ -86,12 +117,25 @@ def cmd_project(args):
 
 
 def cmd_doctor(args):
+    """Handle the ``doctor`` command.
+
+    Args:
+        args: Parsed command arguments (currently unused).
+
+    Returns:
+        int: Environment-check status code.
+    """
     from tools import doctor
 
     return doctor.run()
 
 
 def cmd_sync_skills(args):
+    """Handle the ``sync-skills`` command.
+
+    Args:
+        args: Parsed command arguments (currently unused).
+    """
     from tools import skills
 
     for line in skills.sync():
@@ -99,6 +143,15 @@ def cmd_sync_skills(args):
 
 
 def main(argv=None):
+    """Parse CLI arguments and dispatch the requested command.
+
+    Args:
+        argv: Argument vector excluding the executable name. Uses process arguments
+            when omitted.
+
+    Returns:
+        int: Command exit status.
+    """
     p = argparse.ArgumentParser(
         prog="python python/cli.py",
         description="AIエージェントによる作曲→試聴→REAPERプロジェクト生成",

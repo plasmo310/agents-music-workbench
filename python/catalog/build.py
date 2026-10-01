@@ -19,6 +19,15 @@ PLACEHOLDER = re.compile(r"/\*__DATA__\*/\s*null")
 
 
 def _file(job_dir: Path, rel: str | None) -> dict | None:
+    """Describe a generated project file for catalog JSON.
+
+    Args:
+        job_dir: Root directory of the generation job.
+        rel: File path relative to ``job_dir``.
+
+    Returns:
+        dict | None: Browser and absolute paths plus existence status, if supplied.
+    """
     if not rel:
         return None
     path = job_dir / rel
@@ -30,6 +39,11 @@ def _file(job_dir: Path, rel: str | None) -> dict | None:
 
 
 def list_projects() -> list[dict]:
+    """Load completed project deliveries for display in the catalog.
+
+    Returns:
+        list[dict]: Delivery records, newest first, with resolved file metadata.
+    """
     jobs = []
     for f in settings.PROJECTS.glob("*/delivery.json"):
         job_dir = f.parent
@@ -46,6 +60,11 @@ def list_projects() -> list[dict]:
 
 
 def data() -> dict:
+    """Build the data payload embedded in the static catalog.
+
+    Returns:
+        dict: Generation timestamp, music batches, project deliveries, and profiles.
+    """
     batches = batch.list_batches()
     for b in batches:
         for c in b["cues"]:
@@ -64,6 +83,14 @@ def data() -> dict:
 
 
 def build() -> Path:
+    """Write the self-contained HTML music catalog.
+
+    Returns:
+        Path: Written ``data/library/index.html`` path.
+
+    Raises:
+        RuntimeError: If the catalog template has no unique data placeholder.
+    """
     payload = json.dumps(data(), ensure_ascii=False).replace("</", "<\\/")
     html = (Path(__file__).with_name("catalog.html")).read_text(
         encoding="utf-8"

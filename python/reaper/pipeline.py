@@ -35,6 +35,17 @@ GAP = 2.0
 
 
 def job_dir(job_id: str | None) -> Path:
+    """Resolve an existing project-generation job directory.
+
+    Args:
+        job_id: Explicit job ID, or ``None`` to select the newest job.
+
+    Returns:
+        Path: Existing job directory containing ``job.json``.
+
+    Raises:
+        PipelineError: If the requested or newest job does not exist.
+    """
     if job_id:
         path = settings.PROJECTS / job_id
         if not (path / "job.json").exists():
@@ -60,6 +71,17 @@ def prepare(
     name: str | None = None,
     log=print,
 ) -> Path:
+    """Prepare a saved project list for REAPER generation.
+
+    Args:
+        list_path: Explicit project-list path, or ``None`` for the newest list.
+        profiles: Optional command-line profile override.
+        name: Optional suffix for the generated job ID.
+        log: Callback used for progress messages.
+
+    Returns:
+        Path: New job directory with MIDI, JSON, and Lua input data.
+    """
     sel = project_list.load(list_path)
     profiles, origin = profile_list.resolve(profiles, sel.get("profiles"))
     log(f"リスト: {sel['source']}（{len(sel['items'])} 曲）")
@@ -194,6 +216,21 @@ def _expected_seconds(cue: dict) -> float:
 def build(
     folder: Path, cfg: dict, stage: str = "all", force: bool = False, log=print
 ) -> int:
+    """Build, validate, and catalog a prepared REAPER job.
+
+    Args:
+        folder: Prepared job directory.
+        cfg: Effective application configuration.
+        stage: ``"pilot"`` for the first cue only or ``"all"`` for full build.
+        force: Rebuild already-produced REAPER outputs when ``True``.
+        log: Callback used for progress messages.
+
+    Returns:
+        int: ``0`` on successful verification, otherwise ``1``.
+
+    Raises:
+        PipelineError: If REAPER or generated output validation fails.
+    """
     exe = settings.reaper_exe(cfg)
     if not exe:
         raise PipelineError(
@@ -349,6 +386,17 @@ def build(
 def deliver(
     folder: Path, job: dict, overview: Path, warnings: list[str]
 ) -> dict:
+    """Verify generated files and write delivery metadata for a REAPER job.
+
+    Args:
+        folder: Job directory containing generated outputs.
+        job: Parsed job metadata.
+        overview: Expected all-cues overview project path.
+        warnings: Warnings accumulated during REAPER automation.
+
+    Returns:
+        dict: Verification report written into ``delivery.json``.
+    """
     failures, cues = [], []
     events: dict[str, dict] = {}
     for cue in job["cues"]:

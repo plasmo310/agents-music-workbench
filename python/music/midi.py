@@ -29,10 +29,27 @@ def _chunk(events: list[tuple[int, int, bytes]]) -> bytes:
 
 
 def tick(beats: float) -> int:
+    """Convert score beats to MIDI ticks.
+
+    Args:
+        beats: Duration or position in score beats.
+
+    Returns:
+        int: Rounded tick position at the configured PPQ.
+    """
     return round(beats * PPQ)
 
 
 def note_ticks(start: float, dur: float) -> tuple[int, int]:
+    """Return non-empty start and end ticks for one note.
+
+    Args:
+        start: Note start in score beats.
+        dur: Note duration in score beats.
+
+    Returns:
+        tuple[int, int]: Start tick and end tick.
+    """
     at = tick(start)
     return at, max(at + 1, tick(start + dur))
 
@@ -43,11 +60,26 @@ def _channels():
 
 
 def bend_range(cue: Cue, part: str) -> int:
+    """Select the pitch-bend range required by a part's glides.
+
+    Args:
+        cue: Cue containing the part notes.
+        part: Part name to inspect.
+
+    Returns:
+        int: ``0``, ``12``, or ``24`` semitones.
+    """
     top = max((abs(n.glide) for n in cue.notes if n.part == part), default=0)
     return 0 if not top else 12 if top <= 12 else 24
 
 
 def write_midi(cue: Cue, path: Path) -> None:
+    """Write a cue as a Type 1 MIDI file.
+
+    Args:
+        cue: Validated score cue to export.
+        path: Destination MIDI file path.
+    """
     num, den = parse_meter(cue.meter)
     tempo = round(60_000_000 / cue.tempo)
     conductor = [
@@ -102,7 +134,18 @@ def write_midi(cue: Cue, path: Path) -> None:
 
 
 def read_midi_notes(path: Path) -> list[tuple[str, int, int, int, int]]:
-    """(トラック名, 音高, 開始tick, 終了tick, ベロシティ) の一覧。未終端ノートや構造の破損は例外。"""
+    """Read note events from a Type 1 MIDI file.
+
+    Args:
+        path: MIDI file to parse.
+
+    Returns:
+        list[tuple[str, int, int, int, int]]: Track, pitch, start tick, end tick,
+            and velocity for each note.
+
+    Raises:
+        ValueError: If the MIDI structure is unsupported or malformed.
+    """
     raw = Path(path).read_bytes()
     if raw[:4] != b"MThd":
         raise ValueError("MIDIヘッダーがありません")
@@ -171,6 +214,14 @@ def read_midi_notes(path: Path) -> list[tuple[str, int, int, int, int]]:
 
 
 def expected_notes(cue: Cue) -> list[tuple[str, int, int, int, int]]:
+    """Build expected readback events for a cue's exported MIDI.
+
+    Args:
+        cue: Cue used to generate the MIDI file.
+
+    Returns:
+        list[tuple[str, int, int, int, int]]: Normalized expected note events.
+    """
     return sorted(
         (n.part, n.pitch, *note_ticks(n.start, n.dur), n.vel)
         for n in cue.notes
