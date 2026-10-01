@@ -98,7 +98,6 @@ ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*$")
 
 class ScoreError(ValueError):
     """Raised when score data violates the supported music-data contract."""
-    pass
 
 
 def role_of(part: str) -> str:

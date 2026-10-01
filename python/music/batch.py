@@ -29,7 +29,6 @@ GENERATED = (
 
 class BatchError(RuntimeError):
     """Raised when a composition batch cannot be created, loaded, or rendered."""
-    pass
 
 
 def batch_dir(batch_id: str) -> Path:

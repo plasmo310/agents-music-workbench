@@ -17,7 +17,6 @@ FORMAT = "music-project-list/1"
 
 class ProjectListError(RuntimeError):
     """Raised when a saved project-generation list is missing or invalid."""
-    pass
 
 
 def candidates(cfg: dict | None = None) -> list[Path]:

@@ -79,7 +79,6 @@ def voice_wave(n: Note, d: float, rng: np.random.Generator) -> np.ndarray:
     Returns:
         np.ndarray: Mono float32 waveform.
     """
-    """1音分の波形（エンベロープ込み、振幅は音色基準）。d は秒。"""
     v = n.voice
     t = np.arange(max(2, round(d * SR))) / SR
     f = 440 * 2 ** ((n.pitch - 69) / 12)

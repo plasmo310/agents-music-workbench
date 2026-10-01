@@ -17,7 +17,6 @@ import settings
 
 class PipelineError(RuntimeError):
     """Raised when REAPER automation cannot start, finish, or validate."""
-    pass
 
 
 def to_lua(value) -> str:

@@ -13,7 +13,6 @@ import settings
 
 class ProfileError(ValueError):
     """Raised when requested REAPER instrument profiles are unavailable or empty."""
-    pass
 
 
 def _field(name: str, key: str) -> str | None:
