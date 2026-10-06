@@ -1,42 +1,44 @@
+English · [日本語](README.ja.md)
+
 # agents-music-workbench
 
-AIエージェント（**Codex** / **Claude Code**）に **BGM や効果音を作曲させた曲をブラウザで聴き比べ**、**選んだ曲を音色設定済みの REAPER プロジェクト**にするためのツール一式です。曲のプロトタイプ作成や、アイデア出しに活用できます。
+A toolkit that lets an AI agent (**Codex** / **Claude Code**) **compose BGM and sound effects, lets you audition them side by side in the browser**, and turns **the tracks you pick into REAPER projects with instruments already configured**. Use it for prototyping tracks and brainstorming ideas.
 
 ```
- ① 作曲を依頼               ② 試聴して選ぶ                        ③ プロジェクト生成を依頼
- 「会話用BGMを10曲」   →    data/library/index.html で ★     →    generate-projects.bat
-  WAV・MIDIを書き出し        「全タブ／このタブの★を保存」             音源別 .rpp・試聴WAV・全曲まとめ
+ ① Ask for compositions     ② Audition and pick                       ③ Ask for project generation
+ "10 dialogue BGM tracks" → ★ tracks in data/library/index.html   →   generate-projects.bat
+  WAV + MIDI are written     "Save ★ from all tabs / this tab"          per-instrument .rpp, preview WAV, overview
 ```
 
-- 作曲はエージェントが **音符データ（Python）** として書くため、パート別の MIDI をそのまま REAPER で編集できます。
-- 作曲スキルは同梱していないため、 [music-composition-skills](https://github.com/jtydhr88/music-composition-skills)（ARR-SPEC ワークフロー）等の利用を想定しています。Agentsのスキルとして追加した上でご使用ください。
-- 試聴カタログは作曲した回（バッチ）ごとにタブで切り替わり、書き出すたびに自動で更新されます。
-- REAPER 版は標準の ReaSynth で作ります（追加の音源は不要）。Magical 8bit Plug 2 や MASSIVE 用の設定も同梱しています。
+- The agent writes each composition as **note data (Python)**, so the per-part MIDI can be edited in REAPER as is.
+- No composition skill is bundled. The intended companion is [music-composition-skills](https://github.com/jtydhr88/music-composition-skills) (ARR-SPEC workflow) or similar; add it as an agent skill before use.
+- The audition catalog has one tab per composition session (batch) and is updated automatically each time you render.
+- The REAPER version uses the stock ReaSynth (no extra instruments needed). Settings for Magical 8bit Plug 2 and MASSIVE are also included.
 
-<img src="docs/readme/01_tool_ui.png" width="800" style="max-width: 100%; height: auto;" alt="音素材カタログ画面">
+<img src="docs/readme/01_tool_ui.png" width="800" style="max-width: 100%; height: auto;" alt="Sound catalog screen">
 
-## 動作環境
+## Requirements
 
-| ソフトウェア                     | 用途                                       | 備考                                               |
-| -------------------------------- | ------------------------------------------ | -------------------------------------------------- |
-| Python 3.10 以上 ＋ numpy        | 作曲データの書き出し・カタログ・REAPER連携 | `pip install -r requirements.txt`                  |
-| Codex または Claude Code         | 作曲・プロジェクト生成を頼む相手           |                                                    |
-| Chrome / Edge などのブラウザ     | 試聴カタログ                               | Chrome / Edge ならリストを直接フォルダへ保存できる |
-| [REAPER](https://www.reaper.fm/) | プロジェクト生成                           | 7.x で確認。既定の音源 ReaSynth は REAPER に付属   |
+| Software                         | Purpose                                              | Notes                                                    |
+| -------------------------------- | ---------------------------------------------------- | -------------------------------------------------------- |
+| Python 3.10+ and numpy           | Exporting note data, catalog, REAPER integration     | `pip install -r requirements.txt`                        |
+| Codex or Claude Code             | The agent you ask to compose and generate projects   |                                                          |
+| A browser such as Chrome / Edge  | Audition catalog                                     | Chrome / Edge can save the list directly to a folder     |
+| [REAPER](https://www.reaper.fm/) | Project generation                                   | Tested with 7.x. The default synth, ReaSynth, ships with REAPER |
 
-任意の音源は、入れておくとカタログやコマンドで選べるようになります。<br>
-動作確認は Windows 11 ＋ REAPER 7.80 で行っています。macOS / Linux は未確認です。
+Optional instruments become selectable in the catalog and commands once installed.<br>
+Tested on Windows 11 + REAPER 7.80. macOS / Linux are untested.
 
-## セットアップ
+## Setup
 
 ```bash
 git clone https://github.com/<you>/agents-music-workbench.git
 cd agents-music-workbench
 pip install -r requirements.txt
-python python/cli.py doctor      # Python・REAPER・音源の確認
+python python/cli.py doctor      # Check Python, REAPER, and instruments
 ```
 
-`doctor` で REAPER が見つからない場合や、既定の音源を変えたい場合（例：`["magical8bit", "massive"]`）は、`config.example.json` を `config.json` にコピーして編集します。
+If `doctor` can't find REAPER, or you want to change the default instruments (e.g. `["magical8bit", "massive"]`), copy `config.example.json` to `config.json` and edit it.
 
 ```json
 {
@@ -47,180 +49,180 @@ python python/cli.py doctor      # Python・REAPER・音源の確認
 }
 ```
 
-### エージェントの準備
+### Preparing the agent
 
-このリポジトリをエージェントの作業フォルダとして開くだけで、同梱のスキルが読み込まれます。
+Just open this repository as the agent's working folder and the bundled skills are loaded.
 
-| エージェント | 読み込まれるファイル           |
-| ------------ | ------------------------------ |
-| Codex        | `AGENTS.md`、`.agents/skills/` |
-| Claude Code  | `CLAUDE.md`、`.claude/skills/` |
+| Agent       | Files loaded                   |
+| ----------- | ------------------------------ |
+| Codex       | `AGENTS.md`, `.agents/skills/` |
+| Claude Code | `CLAUDE.md`, `.claude/skills/` |
 
-スキルの本体は `.agents/skills/` の1か所だけです。Claude Code は `.claude/skills/` しか読まないため、そこには説明文と「本体を読む」案内だけを置いています（`python python/cli.py sync-skills` で本体から作り直せます）。
+The skills live in one place only: `.agents/skills/`. Claude Code reads only `.claude/skills/`, so that folder holds just a description and a pointer to the real skill (regenerate it with `python python/cli.py sync-skills`).
 
-## 使い方
+## Usage
 
-### 1. 作曲を頼む
+### 1. Ask for compositions
 
-エージェントに用途や候補数を伝えます。
+Tell the agent the purpose and how many candidates you want.
 
-> 解説動画の会話パートで流すBGMを、レトロゲーム風で10曲作って。ループで使います。
+> Make 10 retro-game-style BGM tracks for the dialogue parts of an explainer video. They'll be looped.
 
-> 章の見出しで鳴らす1秒くらいのSEを、明るいもの中心に8つ。
+> Give me 8 sound effects of about 1 second for chapter headings, mostly bright ones.
 
-エージェントは `data/library/<日付-名前>/compose.py` に曲を書き、WAV と MIDI を書き出します。終わったら試聴カタログを開きます。
+The agent writes the tracks to `data/library/<date-name>/compose.py` and exports WAV and MIDI. When it finishes, open the audition catalog.
 
 ```
-data/library/index.html   ← ブラウザで直接開く（サーバー不要）
+data/library/index.html   ← open directly in a browser (no server needed)
 ```
 
-<img src="docs/readme/01_tool_ui.png" width="800" style="max-width: 100%; height: auto;" alt="音素材カタログ画面">
+<img src="docs/readme/01_tool_ui.png" width="800" style="max-width: 100%; height: auto;" alt="Sound catalog screen">
 
-### 2. 試聴して選ぶ
+### 2. Audition and pick
 
-- 上部のタブで**作曲した回（バッチ）**を切り替えます。タブを開くと、依頼内容や設計メモも確認できます。
+- Switch between **composition sessions (batches)** with the tabs at the top. Opening a tab also shows the request and design notes.
 
-<img src="docs/readme/04_manual_tab.png" width="600" style="max-width: 100%; height: auto;" alt="音素材カタログのバッチタブ">
+<img src="docs/readme/04_manual_tab.png" width="600" style="max-width: 100%; height: auto;" alt="Batch tabs in the sound catalog">
 
-- 気に入った曲の **「☆ リストに追加」** を押します。★は全バッチ共通で、ブラウザに保存されます。
-  - 「音符データなし」と表示される曲は音声だけの素材のため、REAPER プロジェクトにはできません（試聴・WAV保存のみ）。
+- Press **"☆ Add to list"** on tracks you like. ★ marks are shared across all batches and stored in the browser.
+  - Tracks labeled "no note data" are audio-only material and can't become REAPER projects (audition and WAV download only).
 
-<img src="docs/readme/05_manual_favorite.png" width="800" style="max-width: 100%; height: auto;" alt="曲をプロジェクト生成リストに追加する操作">
+<img src="docs/readme/05_manual_favorite.png" width="800" style="max-width: 100%; height: auto;" alt="Adding a track to the project generation list">
 
-- 画面下の保存ボタンを押します。
-  - **「全タブの★を保存」**：すべてのバッチで★を付けた曲をまとめて保存します。
-  - **「このタブの★を保存」**：いま開いているバッチのタブで★を付けた曲だけを保存します（他のタブの★は残ったまま、リストには入りません）。
-  - 初回だけフォルダ選択が開くので、このリポジトリの **`data/project-lists`** フォルダを選びます。以降はワンクリックで `data/project-lists/latest.json` に保存されます。
-  - 直接保存できないブラウザでは `project-list-latest.json` がダウンロードされます（ダウンロードフォルダも自動で探します）。
+- Press a save button at the bottom of the screen.
+  - **"Save ★ from all tabs"**: saves every track starred in any batch.
+  - **"Save ★ from this tab"**: saves only tracks starred in the currently open batch tab (★ in other tabs stay, but are not added to the list).
+  - The first time, a folder picker opens; choose this repository's **`data/project-lists`** folder. After that, one click saves to `data/project-lists/latest.json`.
+  - In browsers that can't save directly, `project-list-latest.json` is downloaded (the Downloads folder is also searched automatically).
 
-<img src="docs/readme/06_manual_generate.png" width="800" style="max-width: 100%; height: auto;" alt="選択した曲からプロジェクト生成リストを保存する操作">
+<img src="docs/readme/06_manual_generate.png" width="800" style="max-width: 100%; height: auto;" alt="Saving the project generation list from selected tracks">
 
-### 3. REAPER プロジェクトを生成する
+### 3. Generate REAPER projects
 
-この工程にはエージェントは不要です。<br>
-リポジトリの **`generate-projects.bat`** をダブルクリックします（macOS / Linux は `./generate-projects.sh`）。最新のプロジェクト生成リストを読み込み、リストで選んだ音源で REAPER プロジェクトを作ります。
+No agent is needed for this step.<br>
+Double-click **`generate-projects.bat`** in the repository (`./generate-projects.sh` on macOS / Linux). It reads the latest project generation list and builds REAPER projects with the instruments selected in the list.
 
-- 中身は `python python/cli.py project all` の実行だけです。引数もそのまま渡せます（例：`generate-projects.bat --profiles reasynth magical8bit`）。
-- numpy の入った Python を自動で探します（`py -3` → `python` → `python3`）。見つからない場合は、環境変数 `MUSIC_PYTHON` に python の実行ファイルのパスを設定してください。
-- エージェントに「最新のリストでREAPERプロジェクトを生成して」と頼んでも同じものが作れます。失敗したときの原因調べや、音源プロファイルの調整を任せたい場合に便利です。
+- It simply runs `python python/cli.py project all`. Arguments are passed through (e.g. `generate-projects.bat --profiles reasynth magical8bit`).
+- It automatically looks for a Python with numpy (`py -3` → `python` → `python3`). If none is found, set the environment variable `MUSIC_PYTHON` to the path of a python executable.
+- You can also ask the agent "generate REAPER projects from the latest list" to get the same result. That's handy when you want it to investigate failures or tune instrument profiles.
 
-REAPER が起動していれば、そのウィンドウに新しいタブを開いて作業し、終わると閉じます。起動していなければ自動で起動します。<br>
-先頭の1曲で全音源の保存・読み込み・書き出しを確認してから、残りの曲へ進みます。
+If REAPER is running, a new tab is opened in that window for the work and closed afterwards. If it isn't running, it is launched automatically.<br>
+The first track is used to verify saving, loading, and rendering for every instrument before moving on to the rest.
 
-結果は `data/projects/<日時-名前>/` にまとまり、試聴カタログの **「生成済みプロジェクト」** タブで音源版を聴き比べられます。<br>
-各プロジェクトの **「パスをコピー」** を押し、REAPER の「ファイル → プロジェクトを開く」のファイル名欄に貼り付けると開けます。
+Results are collected in `data/projects/<datetime-name>/`, and the **"Generated projects"** tab of the audition catalog lets you compare the instrument versions by ear.<br>
+Press **"Copy path"** on a project and paste it into the file name field of REAPER's "File → Open project" to open it.
 
-| ファイル                          | 内容                                                                                                                                                                                                                           |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `<ジョブ>_overview.rpp`           | **全曲まとめ**。各曲がサブプロジェクトとして曲ごとのトラックに並ぶ（音源を複数選んだ場合は、曲のフォルダの中に音源ごとのトラックがあり、ソロで聴き比べられる）。アイテムをダブルクリックするとその曲の編集用プロジェクトが開く |
-| `<曲>/<音源>/<曲>_<音源>.rpp`     | 音色設定済みの編集用プロジェクト（MIDI 埋め込み済み）                                                                                                                                                                          |
-| `<曲>/score.mid`                  | 共通のパート別 MIDI（Type 1 / 960 PPQ）。音色は含まない                                                                                                                                                                        |
-| `<曲>/<音源>/preview_matched.wav` | 音量を揃えた試聴用 WAV（48 kHz / 24-bit）                                                                                                                                                                                      |
-| `<曲>/<音源>/sound_settings.tsv`  | 設定した音源パラメーターの記録                                                                                                                                                                                                 |
-| `README.md` / `delivery.json`     | 成果物の一覧と検証結果                                                                                                                                                                                                         |
+| File                              | Contents                                                                                                                                                                                                                                              |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<job>_overview.rpp`              | **Overview of all tracks.** Each track sits on its own track as a subproject (if you chose multiple instruments, each track's folder holds one track per instrument, which you can solo to compare). Double-click an item to open that track's editing project |
+| `<track>/<instrument>/<track>_<instrument>.rpp` | Editing project with instruments configured (MIDI embedded)                                                                                                                                                                         |
+| `<track>/score.mid`               | Shared per-part MIDI (Type 1 / 960 PPQ). Contains no instrument settings                                                                                                                                                                              |
+| `<track>/<instrument>/preview_matched.wav` | Loudness-matched preview WAV (48 kHz / 24-bit)                                                                                                                                                                                               |
+| `<track>/<instrument>/sound_settings.tsv`  | Record of the instrument parameters that were set                                                                                                                                                                                    |
+| `README.md` / `delivery.json`     | List of deliverables and verification results                                                                                                                                                                                                         |
 
-Overviewのプロジェクトは以下のようになっています。
+The overview project looks like this.
 
-<img src="docs/readme/02_reaper_root_project.png" width="800" style="max-width: 100%; height: auto;" alt="全曲をまとめた REAPER プロジェクト">
+<img src="docs/readme/02_reaper_root_project.png" width="800" style="max-width: 100%; height: auto;" alt="REAPER project combining all tracks">
 
-各曲個別のプロジェクトは以下です。<br>
-ループ曲は3周並べ、中央の1周が再生・書き出し範囲です（前後は余韻の確認用）。SE には 0.35 秒の余韻枠があります。
+An individual track's project looks like this.<br>
+Looping tracks are laid out three times; the middle repeat is the playback / render range (the others are for checking the tail). Sound effects have a 0.35-second tail margin.
 
-<img src="docs/readme/03_reaper_unit_project.png" width="800" style="max-width: 100%; height: auto;" alt="曲ごとの編集用 REAPER プロジェクト">
+<img src="docs/readme/03_reaper_unit_project.png" width="800" style="max-width: 100%; height: auto;" alt="Per-track REAPER editing project">
 
-### エージェントなしで試す
+### Try it without an agent
 
-見本の作曲データで、一連の流れを確認できます。
+You can walk through the whole flow with the sample composition data.
 
 ```bash
-python python/cli.py new-batch demo --example    # 見本を data/library/<日付>-demo/ にコピー
-python python/cli.py render <日付>-demo          # 書き出し＋カタログ更新
-# data/library/index.html を開いて★ → 「全タブの★を保存」または「このタブの★を保存」
-python python/cli.py project all                    # 既定の ReaSynth で生成
+python python/cli.py new-batch demo --example    # Copy the sample to data/library/<date>-demo/
+python python/cli.py render <date>-demo          # Export and update the catalog
+# Open data/library/index.html, ★ tracks → "Save ★ from all tabs" or "Save ★ from this tab"
+python python/cli.py project all                    # Generate with the default ReaSynth
 ```
 
-## コマンド
+## Commands
 
-| コマンド                                                                          | 内容                                                                          |
-| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `python python/cli.py new-batch <名前> [--example]`                               | 作曲バッチの雛形を作る                                                        |
-| `python python/cli.py render <バッチID> [--force]`                                | WAV・MIDI・一覧データを書き出し、カタログを更新                               |
-| `python python/cli.py catalog`                                                    | カタログ（`data/library/index.html`）を作り直す                               |
-| `python python/cli.py project-list [--file PATH]`                                 | 最新のプロジェクト生成リストを表示                                            |
-| `python python/cli.py project all [--profiles ...] [--name 名前] [--stage pilot]` | リストから REAPER プロジェクトを生成                                          |
-| `python python/cli.py project build [<ジョブID>] [--force]`                       | 生成の再開・続行（制作済みの曲は飛ばす）                                      |
-| `python python/cli.py doctor`                                                     | 環境確認                                                                      |
-| `python python/cli.py sync-skills`                                                | `.agents/skills`（本体）から Claude Code 用の案内 `.claude/skills` を作り直す |
-| `python -m unittest discover -s tests`                                            | テスト                                                                        |
+| Command                                                                           | Description                                                                          |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `python python/cli.py new-batch <name> [--example]`                               | Create a composition batch template                                                  |
+| `python python/cli.py render <batch-id> [--force]`                                | Export WAV, MIDI, and list data, and update the catalog                              |
+| `python python/cli.py catalog`                                                    | Rebuild the catalog (`data/library/index.html`)                                      |
+| `python python/cli.py project-list [--file PATH]`                                 | Show the latest project generation list                                              |
+| `python python/cli.py project all [--profiles ...] [--name NAME] [--stage pilot]` | Generate REAPER projects from the list                                               |
+| `python python/cli.py project build [<job-id>] [--force]`                         | Resume / continue generation (already-built tracks are skipped)                      |
+| `python python/cli.py doctor`                                                     | Check the environment                                                                |
+| `python python/cli.py sync-skills`                                                | Rebuild the Claude Code pointers in `.claude/skills` from `.agents/skills` (the source) |
+| `python -m unittest discover -s tests`                                            | Run tests                                                                            |
 
-## 音源プロファイル
+## Instrument profiles
 
-REAPER 版の音作りは `python/reaper/lua/profiles/` の音源プロファイルで決まります。パートの役割（メロディー・ベース・和音・分散和音・打楽器）ごとに音色を設定します。
+How the REAPER version sounds is determined by the instrument profiles in `python/reaper/lua/profiles/`. Sounds are set per part role (melody, bass, chords, arpeggio, percussion).
 
-| 名前          | 音源                       | 備考                                                             |
-| ------------- | -------------------------- | ---------------------------------------------------------------- |
-| `reasynth`    | ReaSynth（REAPER標準）     | **既定**。追加の音源なしで動く。ノイズ源がないため打楽器は近似   |
-| `magical8bit` | Magical 8bit Plug 2        | 任意。パルス・三角波・ノイズによる8bit風の音                     |
-| `massive`     | Native Instruments MASSIVE | 任意。役割ごとにウェーブテーブル・フィルター・エンベロープを設定 |
+| Name          | Instrument                 | Notes                                                                   |
+| ------------- | -------------------------- | ----------------------------------------------------------------------- |
+| `reasynth`    | ReaSynth (REAPER built-in) | **Default.** Works with no extra instruments. No noise source, so percussion is approximated |
+| `magical8bit` | Magical 8bit Plug 2        | Optional. 8-bit sounds from pulse, triangle, and noise                  |
+| `massive`     | Native Instruments MASSIVE | Optional. Sets wavetable, filter, and envelope per role                 |
 
-使う音源は次の順で決まります。複数選ぶと音源ごとにプロジェクトが作られ、聴き比べられます。
+The instruments to use are decided in this order. If you choose several, a project is built for each instrument so you can compare them.
 
-1. コマンドの `--profiles`（例：`project all --profiles reasynth magical8bit`）
-2. 試聴カタログで保存するときに選んだ音源（画面下の「音源」）
-3. `config.json` の `profiles`
-4. 既定（`reasynth`）
+1. `--profiles` on the command (e.g. `project all --profiles reasynth magical8bit`)
+2. The instruments selected when saving in the audition catalog ("Instruments" at the bottom of the screen)
+3. `profiles` in `config.json`
+4. The default (`reasynth`)
 
-### 音色の決まり方
+### How sounds are determined
 
-REAPER 版は、元の試聴 WAV の音色を解析して再現するものではありません。**音符は正確に引き継ぎ、音色は音源ごとに作り直します。**
+The REAPER version does not analyze and reproduce the timbre of the original preview WAV. **Notes are carried over exactly; timbre is rebuilt for each instrument.**
 
-| 引き継ぐもの                                                                         | 引き継がないもの                                         |
-| ------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| 音の高さ・タイミング・長さ・強さ、パン、滑音、パートごとの音量バランス、テンポ・拍子 | 試聴用シンセの音色そのもの（倍音の構成、減衰の速さなど） |
+| Carried over                                                                                              | Not carried over                                                  |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Pitch, timing, length, velocity, pan, glides, per-part volume balance, tempo and time signature           | The preview synth's timbre itself (harmonic content, decay speed) |
 
-音色は次の流れで決まります。
+Timbre is determined as follows.
 
-1. **判別の材料**：作曲データ（`events.json`）の各パートの **役割** と **音色名** を使います。
-   - 役割：`lead`（メロディー）・`bass`・`pad`（和音）・`arp`（分散和音）・`drum`。作曲時に指定がなければパート名から推定します（`Kick` `Hat` → drum、`Bass` → bass など）。
-   - 音色名：`pulse` `triangle` `bell` `hat` など、作曲時に指定した名前です。
-2. **値の決定**：音源プロファイルに書かれたルールで、役割と音色名からパラメーター値を決めます。例：Magical 8bit では、音色名 `pulse` なら波形 Pulse/Square と Duty 25%、役割 `drum` で音色名 `hat` なら波形 Noise と短い Decay。
-3. **VST への設定**：REAPER のスクリプト機能から、プラグインが公開しているパラメーターを名前で探して設定します。「Triangle」や「25%」のような表示どおりの値になるよう、REAPER 上で値を確かめながら合わせます。
-4. **確認と記録**：プロジェクトを保存して開き直し、設定した値が残っているかを照合します。実際に設定した値は各プロジェクトの `sound_settings.tsv` に記録されます。
+1. **Inputs**: the **role** and **timbre name** of each part in the composition data (`events.json`).
+   - Role: `lead` (melody), `bass`, `pad` (chords), `arp` (arpeggio), `drum`. If not specified during composition, it is inferred from the part name (`Kick` `Hat` → drum, `Bass` → bass, etc.).
+   - Timbre name: names specified during composition, such as `pulse`, `triangle`, `bell`, `hat`.
+2. **Deciding values**: rules written in the instrument profile map role and timbre name to parameter values. For example, in Magical 8bit, timbre name `pulse` gives waveform Pulse/Square with 25% Duty, and role `drum` with timbre name `hat` gives waveform Noise with a short Decay.
+3. **Setting the VST**: REAPER's scripting looks up the parameters the plugin exposes by name and sets them. Values are matched while checking in REAPER so they display as expected, such as "Triangle" or "25%".
+4. **Verification and record**: the project is saved and reopened to confirm the set values persisted. The values actually set are recorded in each project's `sound_settings.tsv`.
 
-プラグインが外部に公開していない設定（例：MASSIVE のピッチベンド幅）は変更できません。音色の傾向を変えたいときは、音源プロファイルのルールを編集してください。
+Settings the plugin doesn't expose (e.g. MASSIVE's pitch bend range) can't be changed. To change the overall tendency of the sound, edit the rules in the instrument profile.
 
-新しい音源を追加するには、プロファイルを1ファイル書きます。書き方は [.agents/skills/create-reaper-project/references/profiles.md](.agents/skills/create-reaper-project/references/profiles.md) を参照してください。パラメーター名や選択肢は、REAPER 上で実際の値を確認してから書いてください。
+To add a new instrument, write one profile file. See [.agents/skills/create-reaper-project/references/profiles.md](.agents/skills/create-reaper-project/references/profiles.md) for how. Write parameter names and choices only after confirming the actual values in REAPER.
 
-## フォルダ構成
+## Folder layout
 
 ```
-generate-projects.bat     REAPER プロジェクトの生成（Windows。ダブルクリックで実行）
-generate-projects.sh      同（macOS / Linux）
-AGENTS.md / CLAUDE.md     エージェント向けの入口
-.agents/skills/           スキルの本体（compose-music / create-reaper-project）
-.claude/skills/           Claude Code 用の案内（本体を読ませるだけ）
+generate-projects.bat     Generate REAPER projects (Windows; double-click to run)
+generate-projects.sh      Same (macOS / Linux)
+AGENTS.md / CLAUDE.md     Entry points for agents
+.agents/skills/           The skills themselves (compose-music / create-reaper-project)
+.claude/skills/           Pointers for Claude Code (just direct it to the real skills)
 python/
-  cli.py                  入口（実行するのはこれだけ）
-  settings.py             リポジトリのルートと各フォルダの場所、config.json の読み込み
-  music/                  音符データの形式（Cue / Note / Scale）・試聴用シンセ・MIDI・バッチの書き出し
-  catalog/                試聴カタログ（HTML）とプロジェクト生成リスト
-  reaper/                 REAPER連携（lua/ は REAPER 内で動くスクリプト、lua/profiles/ は音源プロファイル）
-  tools/                  環境確認・スキルの同期
-examples/demo_batch/      作曲データの見本
+  cli.py                  Entry point (the only thing you run)
+  settings.py             Repository root, folder locations, config.json loading
+  music/                  Note data format (Cue / Note / Scale), preview synth, MIDI, batch export
+  catalog/                Audition catalog (HTML) and project generation list
+  reaper/                 REAPER integration (lua/ runs inside REAPER, lua/profiles/ holds instrument profiles)
+  tools/                  Environment check and skill sync
+examples/demo_batch/      Sample composition data
 tests/
-data/                     作業データ（中身は Git の管理対象外）
-  library/                作曲バッチと試聴カタログ（index.html）
-  project-lists/          プロジェクト生成リスト（カタログから保存）
-  projects/               REAPER プロジェクト
+data/                     Working data (contents are not tracked by Git)
+  library/                Composition batches and audition catalog (index.html)
+  project-lists/          Project generation lists (saved from the catalog)
+  projects/               REAPER projects
 ```
 
-コード・設定と、自分の作業データ（`data/`）を分けています。作業データは `data/` フォルダにまとまっているので、バックアップもフォルダごとで済みます。
+Code and settings are kept apart from your own working data (`data/`). Since working data lives in the `data/` folder, backing up is just copying that folder.
 
-## よくある質問・制限
+## FAQ and limitations
 
-- **試聴WAVと REAPER 版で音が違う**：試聴 WAV は内蔵の簡易シンセによる近似です。REAPER 版は同じ音符を各音源で鳴らし直したアレンジです。
-- **生成が止まった／タイムアウトした**：REAPER にダイアログ（ライセンス認証、評価版の案内、保存確認など）が出ていないか確認してください。閉じてから `project build <ジョブID>` で再開できます。ログは `data/projects/<ジョブ>/logs/` にあります。
-- **プラグインを読み込めない**：REAPER の「オプション → 設定 → プラグイン → VST」で再スキャンし、`doctor` で登録を確認してください。
-- **MASSIVE で滑音（グライド）の幅が違う**：MASSIVE はピッチベンド幅をホストから設定できません。音源側で合わせてください（`delivery.json` の warnings に記録されます）。
-- **品質の保証**：自動検査（無音・クリップ・ループの継ぎ目・MIDIの一致・プロジェクトの再読み込み）は行いますが、音楽的な品質や既存曲との類似がないことは保証しません。必ず耳で確認してください。
-- 生成した曲の利用にあたっては、ご自身の責任で確認してください。
+- **The preview WAV and the REAPER version sound different**: the preview WAV is an approximation from a simple built-in synth. The REAPER version is an arrangement that replays the same notes on each instrument.
+- **Generation stopped / timed out**: check whether REAPER is showing a dialog (license activation, evaluation notice, save confirmation, etc.). Close it, then resume with `project build <job-id>`. Logs are in `data/projects/<job>/logs/`.
+- **A plugin won't load**: rescan in REAPER's "Options → Preferences → Plug-ins → VST", and check registration with `doctor`.
+- **Glide range is wrong in MASSIVE**: MASSIVE doesn't let the host set the pitch bend range. Match it on the instrument side (recorded in `delivery.json` warnings).
+- **Quality is not guaranteed**: automatic checks (silence, clipping, loop seams, MIDI match, project reload) are performed, but musical quality and the absence of similarity to existing songs are not guaranteed. Always check by ear.
+- Please verify the usage rights of generated tracks on your own responsibility.
